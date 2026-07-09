@@ -28,6 +28,7 @@ class CreationResult:
     output_id: int
     title: str
     folder: Path
-    md_path: Path
+    md_path: Path            # 头条风格 md（主）
+    wechat_md_path: Path     # 公众号风格 md
     similarity: float
     media: list[MediaItem] = field(default_factory=list)

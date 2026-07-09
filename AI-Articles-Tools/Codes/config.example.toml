@@ -19,7 +19,7 @@ api_key = "sk-xxxxxx"
 model = "whisper-1"
 
 [paths]
-db = "ai_articles.db"
+db = "DataBase/ai_articles.db"   # 数据库文件（自动置于 DataBase/ 文件夹）
 articles_dir = "Articles"   # 采集结果存放
 out_dir = "OutArticles"     # 二创结果存放
 

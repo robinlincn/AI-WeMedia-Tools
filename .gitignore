@@ -23,6 +23,9 @@ venv/
 # ===== 本地数据库（SQLite 持久化，不入库）=====
 *.db
 
+# ===== 含密钥的本地配置（保留 config.example.toml，忽略真实 config.toml）=====
+config.toml
+
 # ===== 文章采集 / 二创生成产物（本地运行产物，不入库）=====
 AI-Articles-Tools/Articles/
 AI-Articles-Tools/OutArticles/

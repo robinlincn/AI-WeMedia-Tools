@@ -28,7 +28,7 @@ class ProviderConfig:
 @dataclass
 class AppConfig:
     provider: str = "openai"  # openai | mock
-    db_path: Path = Path("ai_articles.db")
+    db_path: Path = Path("DataBase/ai_articles.db")
     articles_dir: Path = Path("Articles")
     out_dir: Path = Path("OutArticles")
     llm: ProviderConfig = field(default_factory=ProviderConfig)
@@ -44,6 +44,8 @@ class AppConfig:
                 setattr(self, name, (self.base_dir / p).resolve())
         self.articles_dir.mkdir(parents=True, exist_ok=True)
         self.out_dir.mkdir(parents=True, exist_ok=True)
+        # 数据库文件落在 DataBase/ 内：确保父目录存在（文件本身由 Database 类创建）
+        self.db_path.parent.mkdir(parents=True, exist_ok=True)
         return self
 
 

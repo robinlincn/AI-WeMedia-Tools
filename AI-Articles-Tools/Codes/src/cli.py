@@ -102,9 +102,10 @@ def _print_result(res):
     print(f"  相似度(近似): {res.similarity*100:.2f}%")
     if res.similarity and res.similarity >= 0.10:
         print("  ⚠️ 近似相似度≥10%，建议加强改写或接入嵌入查重")
-    print(f"  文件夹: {res.folder}")
-    print(f"  MD    : {res.md_path}")
-    print(f"  配图  : {len(res.media)} 张")
+    print(f"  文件夹      : {res.folder}")
+    print(f"  头条风格 MD : {res.md_path}")
+    print(f"  公众号风格 MD: {res.wechat_md_path}")
+    print(f"  配图        : {len(res.media)} 张")
 
 
 def main():

@@ -13,7 +13,7 @@ from pathlib import Path
 from src.collector.base import sanitize, ts_now
 from src.config import AppConfig
 from src.creator.image import ImageClient
-from src.creator.layout import compose_markdown
+from src.creator.layout import compose_markdown, compose_wechat
 from src.creator.llm import LLMClient
 from src.db import Database
 from src.models import CreationResult, MediaItem
@@ -92,12 +92,13 @@ class RewriteOrchestrator:
 
         # 3) 规划配图：按段落切片，至多 3 张
         paras = [p.strip() for p in rewritten.split("\n") if p.strip()]
-        chunks = _chunk(paras, size=2, cap=3)
-        intro = (paras[0][:60] if paras else "")
+        intro, body_paras = self._split_intro(paras)
+        chunks = _chunk(body_paras, size=2, cap=3)
 
         segments = []
         media_items: list[MediaItem] = []
-        out_folder = self.cfg.out_dir / f"二创{sanitize(new_title)}_{ts_now()}"
+        ts = ts_now()
+        out_folder = self.cfg.out_dir / f"文章二创{sanitize(new_title)}_{ts}"
         out_folder.mkdir(parents=True, exist_ok=True)
         img_client = ImageClient(self.cfg.image, out_folder, mock=self.mock)
 
@@ -112,22 +113,37 @@ class RewriteOrchestrator:
                 "caption_en": caption_en,
             })
 
-        # 4) 排版
-        md = compose_markdown(new_title, intro, segments)
-        md_path = out_folder / f"{sanitize(new_title)}.md"
-        md_path.write_text(md, encoding="utf-8")
+        # 4) 排版：头条风格 + 公众号风格，双份 md
+        toutiao_md = compose_markdown(new_title, intro, segments)
+        wechat_md = compose_wechat(new_title, intro, segments)
+        toutiao_path = out_folder / f"头条风格{sanitize(new_title)}_{ts}.md"
+        wechat_path = out_folder / f"公众号风格{sanitize(new_title)}_{ts}.md"
+        toutiao_path.write_text(toutiao_md, encoding="utf-8")
+        wechat_path.write_text(wechat_md, encoding="utf-8")
 
         # 5) 入库
         # mock 模式不调用真实改写，相似度记为占位低值；真实模式用 4-gram Jaccard 近似。
         # 注：真正“与原创相似度<10%”应由改写模型质量 + 嵌入查重 API 保障，此处仅为离线可跑的近似指标。
         sim = 0.05 if self.mock else similarity_estimate(original_body, rewritten)
-        out_id = self.db.insert_output(source_id, new_title, out_folder.name, md_path, similarity=sim)
+        out_id = self.db.insert_output(source_id, new_title, out_folder.name, toutiao_path, similarity=sim)
         for m in media_items:
             self.db.insert_media("output", out_id, m.kind, m.path, m.caption_zh, m.caption_en)
 
-        return CreationResult(out_id, new_title, out_folder, md_path, sim, media_items)
+        return CreationResult(out_id, new_title, out_folder, toutiao_path, wechat_path, sim, media_items)
 
     # ---------- 内部 ----------
+    @staticmethod
+    def _split_intro(paras: list[str]) -> tuple[str, list[str]]:
+        """导语只取首句作钩子；正文从首句之后接续，避免导语与正文重复。"""
+        if not paras:
+            return "", []
+        first = paras[0]
+        parts = re.split(r"(?<=[。！？!?])", first, maxsplit=1)
+        intro = parts[0].strip()
+        rest = parts[1].strip() if len(parts) > 1 else ""
+        body = ([rest] if rest else []) + paras[1:]
+        return intro, body
+
     def _caption_for(self, chunk: str, is_cover: bool) -> tuple[str, str, str]:
         if self.mock:
             base = re.sub(r"\s+", "", chunk)[:12]

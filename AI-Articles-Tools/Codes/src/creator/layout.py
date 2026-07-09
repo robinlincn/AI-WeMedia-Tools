@@ -63,3 +63,36 @@ def compose_markdown(
     if cta:
         parts.append(cta)
     return "\n".join(parts).rstrip() + "\n"
+
+
+def compose_wechat(
+    title: str,
+    intro: str,
+    segments: list[dict],
+    cta: str = "如果觉得有用，欢迎点赞、在看、分享给朋友；也欢迎关注我们，后续持续分享干货。",
+) -> str:
+    """公众号风格：更柔和、留白多、章节间不加分隔线，适合公众号编辑器直接粘贴。"""
+    parts = [f"# {title}", ""]
+    if intro:
+        parts.append(f"> {intro}")
+        parts.append("")
+    for seg in segments:
+        text = seg.get("text", "").strip()
+        if text:
+            for ln in text.split("\n"):
+                ln = ln.strip()
+                if ln:
+                    parts.append(_bold_lead(ln))
+                    parts.append("")
+        img: Optional[Path] = seg.get("image_path")
+        if img:
+            cz = seg.get("caption_zh", "")
+            ce = seg.get("caption_en", "")
+            parts.append(f"![{cz or '配图'}](images/{img.name})")
+            if cz or ce:
+                cap = f"*{cz} / {ce}*" if (cz and ce) else f"*{cz or ce}*"
+                parts.append(cap)
+            parts.append("")
+    if cta:
+        parts.append(cta)
+    return "\n".join(parts).rstrip() + "\n"

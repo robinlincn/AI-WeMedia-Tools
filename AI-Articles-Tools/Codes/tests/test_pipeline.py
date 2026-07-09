@@ -15,11 +15,31 @@ from src.config import AppConfig  # noqa: E402
 from src.db import Database  # noqa: E402
 from src.collector.text import TextCollector  # noqa: E402
 from src.collector.video import VideoCollector  # noqa: E402
+from src.collector.link import LinkCollector  # noqa: E402
 from src.creator.llm import LLMClient  # noqa: E402
 from src.creator.rewrite import RewriteOrchestrator  # noqa: E402
 
 
+def test_link_helpers():
+    """离线验证链接采集器的头条地址改写与标题去后缀（不依赖网络）。"""
+    assert LinkCollector._normalize_url(
+        "https://www.toutiao.com/article/7659335342427734568/"
+    ) == "https://m.toutiao.com/i7659335342427734568/"
+    assert LinkCollector._normalize_url(
+        "https://m.toutiao.com/i7659588574035149327/"
+    ) == "https://m.toutiao.com/i7659588574035149327/"  # 已是移动版，不变
+    assert LinkCollector._clean_title(
+        "开源 TTS 又进一步：一段文字几秒变自然人声，还能克隆你的声音 - 今日头条"
+    ) == "开源 TTS 又进一步：一段文字几秒变自然人声，还能克隆你的声音"
+    assert LinkCollector._clean_title("AI工具出海赚美金：一个人月入30万") == \
+        "AI工具出海赚美金：一个人月入30万"
+    # 文件夹前缀应为「文章链接采集」
+    assert LinkCollector.prefix == "文章链接采集", "链接采集文件夹前缀应为 文章链接采集"
+    print("[链接helper] URL 改写 / 标题去后缀 / 前缀 OK")
+
+
 def run():
+    test_link_helpers()
     tmp = tempfile.mkdtemp()
     cfg = AppConfig(provider="mock", base_dir=Path(tmp))
     cfg.articles_dir = Path("Articles")
@@ -45,7 +65,15 @@ def run():
     assert res.media, "应生成至少一张配图"
     assert res.similarity < 0.10, f"近似相似度过高：{res.similarity}"
     md = res.md_path.read_text(encoding="utf-8")
-    assert "images/" in md, "md 应嵌入配图"
+    assert "images/" in md, "头条风格 md 应嵌入配图"
+    # 双风格：公众号风格 md 也应存在并含配图
+    wmd = res.wechat_md_path.read_text(encoding="utf-8")
+    assert res.wechat_md_path.exists(), "公众号风格 md 应存在"
+    assert "images/" in wmd, "公众号风格 md 应嵌入配图"
+    # 文件夹与文件名前缀规范
+    assert res.folder.name.startswith("文章二创"), f"二创文件夹前缀应为 文章二创：{res.folder.name}"
+    assert res.md_path.name.startswith("头条风格"), f"头条 md 前缀应为 头条风格：{res.md_path.name}"
+    assert res.wechat_md_path.name.startswith("公众号风格"), f"公众号 md 前缀应为 公众号风格：{res.wechat_md_path.name}"
     # 回归：改写任务不能被误判为标题任务
     # （REWRITE_SYSTEM 曾因含“小标题”被 _mock_reply 的 `"标题" in system` 误判，
     #  导致正文被替换成“【干货】…”标题文本。此处断言正文确为改写内容。）
