@@ -1,0 +1,8 @@
+# AI-Articles-Tools 运行依赖
+# 注：ffmpeg 为系统级二进制（视频提取音频用），需自行安装并加入 PATH。
+requests>=2.31
+beautifulsoup4>=4.12
+lxml>=5.0
+toml>=0.10
+openai>=1.30          # 兼容 OpenAI / DeepSeek / SiliconFlow 等 OpenAI 协议端点
+yt-dlp>=2024.0        # 视频下载

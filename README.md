@@ -70,7 +70,7 @@ AI-WeMedia-Tools/
 
 | 模块 | 方向 | 当前阶段 | 说明 |
 |------|------|----------|------|
-| `AI-Articles-Tools` | 文章优化及二创 | 🟡 规划中 | 待落地 Skills |
+| `AI-Articles-Tools` | 文章优化及二创 | 🟢 进行中 | 采集（链接/文案/视频）+ 二创（标题/正文/配图/头条排版）已落地，代码见 `AI-Articles-Tools/Codes` |
 | `AI-Images-Tools` | 图片制作及效果 | 🟡 规划中 | 待落地 Skills |
 | `AI-Musics-Tools` | 音乐制作 | 🟡 规划中 | 待落地 Skills |
 | `AI-Prompts-Tools` | 关键词及反推 | 🟢 进行中 | `Prompts-Back-Calculate` 已有初步代码 |
@@ -94,3 +94,4 @@ AI-WeMedia-Tools/
 ## 📝 更新日志
 
 - **2026-07-09**：初始化项目规划，建立目录结构与三阶段演进路线图，首次提交并推送至 GitHub。
+- **2026-07-09**：落地 `AI-Articles-Tools` 模块——内容采集（链接/文案/视频）+ 二次创作（标题/正文/配图/头条排版），数据持久化到 SQLite；新增模块 `Codes/README.md` 与离线冒烟测试，修复 mock 改写任务被误判为标题任务的 bug。

@@ -25,5 +25,12 @@
 - 已通过 .gitignore 排除 node_modules / videos / frames / OutVideos / logs 等大体积产物（Prompts-Back-Calculate 内 node_modules 达 7.3GB，严禁提交）。
 
 ## 模块进度
+- AI-Articles-Tools：🟢 进行中（采集[链接/文案/视频]+二创[标题/正文/配图/头条排版]，代码见 `AI-Articles-Tools/Codes`，SQLite 持久化）
 - AI-Prompts-Tools：🟢 进行中（Prompts-Back-Calculate 已有代码）
-- 其余 6 个：🟡 规划中，待落地 Skills
+- 其余 5 个：🟡 规划中，待落地 Skills
+
+## 关键技术约定（AI-Articles-Tools）
+- 分类代码统一放在对应分类目录的 `Codes/` 子目录（如 `AI-Articles-Tools/Codes`）。
+- 数据持久化用本地 SQLite（`src/db.py`：sources/outputs/media 三表）。
+- 离线 mock 模式：LLM/Image 走确定性返回，`--mock` 或 `provider="mock"` 即可跑通全流程，无需 API key。
+- ⚠️ 已知坑：mock `_mock_reply` 用 `"标题" in system` 判定标题任务，但 `REWRITE_SYSTEM` 含「小标题」会误判——已改为用独有的「标题党」标记判定。
