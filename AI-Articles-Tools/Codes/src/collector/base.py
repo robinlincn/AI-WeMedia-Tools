@@ -1,9 +1,9 @@
 """采集基类：负责文件夹命名、md 写入、记录入库。
 
-文件夹命名规则（满足需求：「类型+标题+时间戳」）：
-  链接采集 -> 文章采集{标题}_{YYYYMMDD_HHMMSS}
-  文案采集 -> 原文案{标题}_{YYYYMMDD_HHMMSS}
-  视频采集 -> 视频采集{标题}_{YYYYMMDD_HHMMSS}
+文件夹命名规则（满足需求：「类型-标题-时间戳」）：
+  链接采集 -> 文章链接采集-标题-YYYYMMDD_HHMMSS
+  文案采集 -> 原文案-标题-YYYYMMDD_HHMMSS
+  视频采集 -> 视频采集-标题-YYYYMMDD_HHMMSS
 """
 from __future__ import annotations
 
@@ -37,7 +37,7 @@ class BaseCollector:
         self.db = db
 
     def make_folder(self, title: str) -> Path:
-        folder = self.cfg.articles_dir / f"{self.prefix}{sanitize(title)}_{ts_now()}"
+        folder = self.cfg.articles_dir / f"{self.prefix}-{sanitize(title)}-{ts_now()}"
         folder.mkdir(parents=True, exist_ok=True)
         (folder / "images").mkdir(exist_ok=True)
         return folder

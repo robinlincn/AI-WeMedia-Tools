@@ -19,9 +19,9 @@ api_key = "sk-xxxxxx"
 model = "whisper-1"
 
 [paths]
-db = "DataBase/ai_articles.db"   # 数据库文件（自动置于 DataBase/ 文件夹）
-articles_dir = "Articles"   # 采集结果存放
-out_dir = "OutArticles"     # 二创结果存放
+db = "AI-Global/Database/ai_articles.db"   # 数据库文件（全局共享，置于 AI-Global/Database/）
+articles_dir = "Articles"   # 采集结果存放（本分类目录内）
+out_dir = "OutArticles"     # 二创结果存放（本分类目录内）
 
 [app]
 provider = "openai"         # openai | mock（mock 可离线跑通全流程）

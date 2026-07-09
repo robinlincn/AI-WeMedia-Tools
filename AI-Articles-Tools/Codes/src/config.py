@@ -15,7 +15,11 @@ from pathlib import Path
 
 import toml
 
-DEFAULT_CONFIG_PATH = Path(__file__).resolve().parent.parent / "config.toml"
+# 项目根目录（AI-WeMedia-Tools）：config.py 位于 <root>/AI-Articles-Tools/Codes/src/
+PROJECT_ROOT = Path(__file__).resolve().parents[3]
+GLOBAL_CONFIG_DIR = PROJECT_ROOT / "AI-Global" / "Configs"
+GLOBAL_CONFIG = GLOBAL_CONFIG_DIR / "config.toml"
+EXAMPLE_CONFIG = GLOBAL_CONFIG_DIR / "config.example.toml"
 
 
 @dataclass
@@ -38,13 +42,19 @@ class AppConfig:
 
     def resolve_paths(self) -> "AppConfig":
         self.base_dir = self.base_dir.resolve()
-        for name in ("db_path", "articles_dir", "out_dir"):
-            p: Path = getattr(self, name)
-            if not p.is_absolute():
-                setattr(self, name, (self.base_dir / p).resolve())
+        # 项目根目录 = 分类目录的父级（AI-WeMedia-Tools），作为全局资源锚点
+        project_root = self.base_dir.parent
+        # 数据库统一落在全局目录 AI-Global/Database（与各分类解耦，便于集中管理）
+        if not self.db_path.is_absolute():
+            self.db_path = (project_root / self.db_path).resolve()
+        # 采集/二创产物仍按分类目录隔离
+        if not self.articles_dir.is_absolute():
+            self.articles_dir = (self.base_dir / self.articles_dir).resolve()
+        if not self.out_dir.is_absolute():
+            self.out_dir = (self.base_dir / self.out_dir).resolve()
         self.articles_dir.mkdir(parents=True, exist_ok=True)
         self.out_dir.mkdir(parents=True, exist_ok=True)
-        # 数据库文件落在 DataBase/ 内：确保父目录存在（文件本身由 Database 类创建）
+        # 数据库文件落在 AI-Global/Database/ 内：确保父目录存在（文件本身由 Database 类创建）
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
         return self
 
@@ -54,7 +64,12 @@ def _env(prefix: str, key: str, default: str) -> str:
 
 
 def load_config(config_path: str | None = None) -> AppConfig:
-    path = Path(config_path) if config_path else DEFAULT_CONFIG_PATH
+    # 未显式指定时：优先用全局配置 AI-Global/Configs/config.toml，
+    # 不存在则退回示例配置 config.example.toml（均无则走内置默认）。
+    if config_path is None:
+        path = GLOBAL_CONFIG if GLOBAL_CONFIG.exists() else EXAMPLE_CONFIG
+    else:
+        path = Path(config_path)
     cfg = AppConfig()
 
     # 1) 从 config.toml 读取

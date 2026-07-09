@@ -38,6 +38,8 @@ from src.creator.rewrite import RewriteOrchestrator  # noqa: E402
 
 def _build(args) -> tuple:
     cfg = load_config(args.config)
+    if args.mock:
+        cfg.provider = "mock"  # --mock 强制离线，无需任何配置/密钥
     cfg.base_dir = ROOT
     cfg.resolve_paths()
     mock = args.mock or cfg.provider == "mock"

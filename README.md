@@ -18,6 +18,9 @@
 
 ```
 AI-WeMedia-Tools/
+├── AI-Global/                # 全局共享资源（所有分类共用）
+│   ├── Configs/              # 全局配置 config.toml（含密钥，gitignore）+ config.example.toml
+│   └── Database/             # 全局 SQLite 数据库（各分类共享，gitignore）
 ├── AI-Articles-Tools/        # 文章优化及二创
 ├── AI-Images-Tools/          # 图片制作及效果
 ├── AI-Musics-Tools/          # 音乐制作
@@ -27,6 +30,9 @@ AI-WeMedia-Tools/
 ├── AI-Videos-Tools/          # 视频及教学制作
 └── AI-Webs-Tools/            # 网站页面制作
 ```
+
+> 约定：各分类的**代码**放在自己的 `Codes/` 目录；**配置与数据库**统一放在 `AI-Global/`
+> （`Configs/`、`Database/`），便于所有分类共享与集中管理。
 
 | 分目录 | 定位 | 说明 |
 |--------|------|------|

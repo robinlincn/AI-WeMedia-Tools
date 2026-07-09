@@ -44,7 +44,7 @@ def run():
     cfg = AppConfig(provider="mock", base_dir=Path(tmp))
     cfg.articles_dir = Path("Articles")
     cfg.out_dir = Path("OutArticles")
-    cfg.db_path = Path("test.db")
+    cfg.db_path = Path(tmp) / "test.db"  # 绝对路径，避免落入临时目录父级
     cfg.resolve_paths()
     db = Database(cfg.db_path)
     llm = LLMClient(cfg.llm, mock=True)
@@ -58,6 +58,8 @@ def run():
     # 1) 文案采集 + 二创
     col = TextCollector(cfg, db).collect(raw, title="AI写作的利与弊")
     assert col.source_id > 0, "文案采集应返回 source_id"
+    # 采集文件夹命名应为「原文案-标题-时间戳」（连字符分隔）
+    assert col.folder.name.startswith("原文案-"), f"采集文件夹应用 - 分隔：{col.folder.name}"
     res = orch.create(col.title, raw, source_id=col.source_id)
     assert res.output_id > 0, "二创应返回 output_id"
     assert res.md_path.exists(), "二创 md 应存在"
@@ -70,10 +72,13 @@ def run():
     wmd = res.wechat_md_path.read_text(encoding="utf-8")
     assert res.wechat_md_path.exists(), "公众号风格 md 应存在"
     assert "images/" in wmd, "公众号风格 md 应嵌入配图"
-    # 文件夹与文件名前缀规范
-    assert res.folder.name.startswith("文章二创"), f"二创文件夹前缀应为 文章二创：{res.folder.name}"
-    assert res.md_path.name.startswith("头条风格"), f"头条 md 前缀应为 头条风格：{res.md_path.name}"
-    assert res.wechat_md_path.name.startswith("公众号风格"), f"公众号 md 前缀应为 公众号风格：{res.wechat_md_path.name}"
+    # 文件夹与文件名前缀规范（连字符 - 分隔）
+    assert res.folder.name.startswith("文章二创-"), f"二创文件夹应用 - 分隔：{res.folder.name}"
+    assert res.md_path.name.startswith("头条风格-"), f"头条 md 应用 - 分隔：{res.md_path.name}"
+    assert res.wechat_md_path.name.startswith("公众号风格-"), f"公众号 md 应用 - 分隔：{res.wechat_md_path.name}"
+    assert "-" in res.folder.name, "二创文件夹命名应包含连字符分隔"
+    assert res.md_path.name.count("-") >= 2, "头条 md 文件名应包含连字符分隔（风格-标题-时间戳）"
+    assert res.wechat_md_path.name.count("-") >= 2, "公众号 md 文件名应包含连字符分隔（风格-标题-时间戳）"
     # 回归：改写任务不能被误判为标题任务
     # （REWRITE_SYSTEM 曾因含“小标题”被 _mock_reply 的 `"标题" in system` 误判，
     #  导致正文被替换成“【干货】…”标题文本。此处断言正文确为改写内容。）

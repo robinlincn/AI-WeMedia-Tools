@@ -98,7 +98,7 @@ class RewriteOrchestrator:
         segments = []
         media_items: list[MediaItem] = []
         ts = ts_now()
-        out_folder = self.cfg.out_dir / f"文章二创{sanitize(new_title)}_{ts}"
+        out_folder = self.cfg.out_dir / f"文章二创-{sanitize(new_title)}-{ts}"
         out_folder.mkdir(parents=True, exist_ok=True)
         img_client = ImageClient(self.cfg.image, out_folder, mock=self.mock)
 
@@ -116,8 +116,8 @@ class RewriteOrchestrator:
         # 4) 排版：头条风格 + 公众号风格，双份 md
         toutiao_md = compose_markdown(new_title, intro, segments)
         wechat_md = compose_wechat(new_title, intro, segments)
-        toutiao_path = out_folder / f"头条风格{sanitize(new_title)}_{ts}.md"
-        wechat_path = out_folder / f"公众号风格{sanitize(new_title)}_{ts}.md"
+        toutiao_path = out_folder / f"头条风格-{sanitize(new_title)}-{ts}.md"
+        wechat_path = out_folder / f"公众号风格-{sanitize(new_title)}-{ts}.md"
         toutiao_path.write_text(toutiao_md, encoding="utf-8")
         wechat_path.write_text(wechat_md, encoding="utf-8")
 
