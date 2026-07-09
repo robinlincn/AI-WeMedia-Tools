@@ -1,0 +1,15 @@
+{
+  "name": "claude-code-4habits",
+  "version": "0.1.0",
+  "private": true,
+  "description": "HyperFrames 复刻《让 Claude Code 替你干一天的 4 个习惯》PPT 口播字幕流风格",
+  "scripts": {
+    "preview": "hyperframes preview",
+    "render": "hyperframes render --output ../../OutVideos/claude-code-4habits-hyperframes.mp4",
+    "lint": "hyperframes lint",
+    "validate": "hyperframes validate"
+  },
+  "dependencies": {
+    "hyperframes": "^0.7.42"
+  }
+}

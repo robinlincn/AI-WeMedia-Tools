@@ -1,0 +1,25 @@
+# ===== 依赖（禁止提交）=====
+node_modules/
+
+# ===== 媒体与生成产物（体积大；如需版本管理请用 Git LFS 或本地保留）=====
+videos/
+frames/
+OutVideos/
+logs/
+*.mp4
+*.mov
+*.avi
+*.mkv
+*.webm
+
+# ===== 系统 / 编辑器垃圾 =====
+.DS_Store
+Thumbs.db
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# ===== WorkBuddy 本地数据 =====
+# 说明：.workbuddy 含 Skills 技能与长期记忆，属于本项目要版本化的内容，故不忽略。
+# 若日后希望排除本地状态，可自行添加规则。

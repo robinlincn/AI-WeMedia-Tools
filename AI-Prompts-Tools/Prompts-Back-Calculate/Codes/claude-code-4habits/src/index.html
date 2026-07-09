@@ -1,0 +1,555 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=1080, initial-scale=1" />
+  <title>让 Claude Code 替你干一天的 4 个习惯 - HyperFrames Demo</title>
+  <style>
+    /* ===== 字体声明（lint 要求每个用到的字体都要 @font-face） ===== */
+    @font-face {
+      font-family: "Noto Sans SC";
+      src: local("Noto Sans SC"), local("Noto Sans CJK SC"), local("Source Han Sans SC"), local("Microsoft YaHei");
+    }
+    @font-face {
+      font-family: "PingFang SC";
+      src: local("PingFang SC"), local("Microsoft YaHei");
+    }
+    @font-face {
+      font-family: "Microsoft YaHei";
+      src: local("Microsoft YaHei");
+    }
+    @font-face {
+      font-family: "JetBrains Mono";
+      src: local("JetBrains Mono"), local("Consolas"), local("Cascadia Code");
+    }
+
+    /* ===== 全局 ===== */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { width: 100%; height: 100%; }
+    body {
+      font-family: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+      background: #0E0E1F;
+      color: #FFFFFF;
+      overflow: hidden;
+    }
+    .root {
+      position: relative;
+      width: 1080px;
+      height: 1080px;
+      background: #0E0E1F;
+      overflow: hidden;
+    }
+
+    /* ===== 场景层（每个 scene 是一个 div 占满 1080x1080） ===== */
+    .scene {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+    }
+    .scene[hidden] { display: none; }
+
+    /* ===== 背景层（深蓝紫渐变 + 装饰光） ===== */
+    .bg-gradient {
+      position: absolute; inset: 0;
+      background:
+        radial-gradient(ellipse at 20% 30%, rgba(165,107,255,0.15) 0%, transparent 50%),
+        radial-gradient(ellipse at 80% 80%, rgba(93,217,244,0.10) 0%, transparent 50%),
+        linear-gradient(180deg, #0E0E1F 0%, #1A0E2E 100%);
+    }
+    .bg-grid {
+      position: absolute; inset: 0;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+      background-size: 60px 60px;
+    }
+
+    /* ===== 场景内容容器（flex 列） ===== */
+    .scene-content {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+      height: 100%;
+      padding: 80px 60px;
+      gap: 24px;
+      text-align: center;
+    }
+
+    /* ===== 文字基础样式 ===== */
+    .eyebrow {
+      font-size: 28px;
+      font-weight: 400;
+      color: #A0A0C0;
+      letter-spacing: 4px;
+    }
+    .title-xl {
+      font-size: 88px;
+      font-weight: 900;
+      line-height: 1.15;
+      letter-spacing: -1px;
+      color: #FFFFFF;
+    }
+    .title-l {
+      font-size: 64px;
+      font-weight: 800;
+      line-height: 1.2;
+      color: #FFFFFF;
+    }
+    .title-m {
+      font-size: 44px;
+      font-weight: 700;
+      line-height: 1.3;
+      color: #FFFFFF;
+    }
+    .body {
+      font-size: 28px;
+      font-weight: 400;
+      line-height: 1.5;
+      color: #C8C8E0;
+      max-width: 880px;
+    }
+    .highlight {
+      color: #FFD75E;
+      font-weight: 700;
+    }
+    .highlight-cyan { color: #5DD9F4; font-weight: 700; }
+    .highlight-purple { color: #A56BFF; font-weight: 700; }
+    .highlight-orange { color: #FF8A3D; font-weight: 700; }
+
+    /* ===== 卡片 ===== */
+    .card {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 20px;
+      padding: 24px 32px;
+      backdrop-filter: blur(8px);
+    }
+    .card-green {
+      background: rgba(92,228,161,0.12);
+      border-color: rgba(92,228,161,0.4);
+    }
+    .card-cyan {
+      background: rgba(93,217,244,0.12);
+      border-color: rgba(93,217,244,0.4);
+    }
+    .card-yellow {
+      background: rgba(255,215,94,0.12);
+      border-color: rgba(255,215,94,0.4);
+    }
+    .card-orange {
+      background: rgba(255,138,61,0.12);
+      border-color: rgba(255,138,61,0.4);
+    }
+
+    /* ===== Claude 回复 UI 模拟（习惯 1·问题） ===== */
+    .claude-ui {
+      width: 880px;
+      max-width: 100%;
+      background: #1E1E2E;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,0.1);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+      overflow: hidden;
+    }
+    .claude-ui-header {
+      display: flex; align-items: center; gap: 8px;
+      padding: 12px 16px;
+      background: #181825;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    .claude-ui-dot {
+      width: 12px; height: 12px; border-radius: 50%;
+    }
+    .claude-ui-dot.r { background: #FF5F57; }
+    .claude-ui-dot.y { background: #FEBC2E; }
+    .claude-ui-dot.g { background: #28C840; }
+    .claude-ui-title {
+      margin-left: 12px;
+      font-size: 16px;
+      color: #6C7086;
+    }
+    .claude-ui-body {
+      padding: 20px 24px;
+      font-family: "JetBrains Mono", "Consolas", monospace;
+      font-size: 18px;
+      line-height: 1.7;
+      color: #CDD6F4;
+      text-align: left;
+    }
+    .claude-ui-line {
+      padding: 4px 8px;
+      margin: 2px 0;
+      border-radius: 4px;
+    }
+    .claude-ui-line.muted { color: #585B70; }
+    .claude-ui-line.highlight-warn {
+      background: rgba(255,138,61,0.18);
+      color: #FF8A3D;
+      border-left: 3px solid #FF8A3D;
+      font-weight: 700;
+    }
+
+    /* ===== CLAUDE.md markdown 代码块（习惯 1·怎么做） ===== */
+    .claude-md {
+      width: 100%;
+      max-width: 880px;
+      background: #181825;
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 14px;
+      overflow: hidden;
+      text-align: left;
+    }
+    .claude-md-header {
+      display: flex; align-items: center; gap: 8px;
+      padding: 12px 16px;
+      background: #11111B;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    .claude-md-filename {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 16px;
+      color: #A6ADC8;
+    }
+    .claude-md-body {
+      padding: 20px 24px;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 17px;
+      line-height: 1.7;
+      color: #CDD6F4;
+    }
+    .claude-md-body .heading { color: #CBA6F7; font-weight: 700; }
+    .claude-md-body .code-inline {
+      background: rgba(255,255,255,0.06);
+      padding: 2px 6px;
+      border-radius: 4px;
+      color: #FAB387;
+    }
+    .claude-md-body .code-block {
+      background: #11111B;
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 8px;
+      padding: 12px 16px;
+      margin: 12px 0;
+      color: #A6E3A1;
+      white-space: pre-wrap;
+    }
+    .claude-md-body ul { list-style: none; padding-left: 0; }
+    .claude-md-body li { padding: 2px 0; }
+
+    /* ===== 4 步流程图（总结） ===== */
+    .flow-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      flex-wrap: nowrap;
+    }
+    .flow-step {
+      display: flex; flex-direction: column;
+      align-items: center; gap: 8px;
+      padding: 16px 20px;
+      border-radius: 16px;
+      min-width: 180px;
+    }
+    .flow-step .num {
+      font-size: 22px; font-weight: 800; color: #FFFFFF;
+      width: 40px; height: 40px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .flow-step .name { font-size: 22px; font-weight: 700; color: #FFFFFF; }
+    .flow-step .desc { font-size: 16px; color: #A0A0C0; }
+    .flow-arrow {
+      font-size: 36px; font-weight: 800;
+      color: #6C7086;
+    }
+    .fs-1 { background: rgba(93,217,244,0.18); border: 1px solid rgba(93,217,244,0.4); }
+    .fs-1 .num { background: #5DD9F4; color: #0E0E1F; }
+    .fs-2 { background: rgba(166,135,255,0.18); border: 1px solid rgba(166,135,255,0.4); }
+    .fs-2 .num { background: #A687FF; color: #0E0E1F; }
+    .fs-3 { background: rgba(255,138,61,0.18); border: 1px solid rgba(255,138,61,0.4); }
+    .fs-3 .num { background: #FF8A3D; color: #0E0E1F; }
+    .fs-4 { background: rgba(255,215,94,0.18); border: 1px solid rgba(255,215,94,0.4); }
+    .fs-4 .num { background: #FFD75E; color: #0E0E1F; }
+
+    /* ===== 底部字幕条 ===== */
+    .subtitle-bar {
+      position: absolute;
+      left: 0; right: 0; bottom: 0;
+      height: 100px;
+      background: linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.85) 30%);
+      display: flex; align-items: center; justify-content: center;
+      padding: 0 60px 24px;
+    }
+    .subtitle-bar .text {
+      font-size: 38px;
+      font-weight: 700;
+      color: #FFD75E;
+      text-align: center;
+      line-height: 1.3;
+      max-width: 960px;
+    }
+
+    /* ===== 角落品牌水印 ===== */
+    .brand-mark {
+      position: absolute;
+      top: 32px; left: 32px;
+      display: flex; align-items: center; gap: 8px;
+      z-index: 5;
+    }
+    .brand-mark .dot {
+      width: 14px; height: 14px; border-radius: 50%;
+      background: linear-gradient(135deg, #5DD9F4, #A56BFF);
+    }
+    .brand-mark .name {
+      font-size: 20px; font-weight: 700; color: #FFFFFF;
+      letter-spacing: 1px;
+    }
+
+    /* ===== 封面大数字 4 ===== */
+    .big-4 {
+      position: relative;
+      font-size: 320px;
+      font-weight: 900;
+      line-height: 0.9;
+      color: transparent;
+      background: linear-gradient(135deg, #FFD75E 0%, #FF8A3D 50%, #FF5F57 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      filter: drop-shadow(0 0 40px rgba(255,138,61,0.4));
+    }
+
+    /* ===== 总结画面圆 ===== */
+    .end-circle {
+      width: 200px; height: 200px;
+      border-radius: 50%;
+      border: 3px dashed #FF8A3D;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px; font-weight: 700; color: #FF8A3D;
+      text-align: center;
+    }
+
+    /* ===== 网格行辅助（卡片并排） ===== */
+    .cards-row {
+      display: flex;
+      gap: 16px;
+      flex-wrap: nowrap;
+      width: 100%;
+      max-width: 960px;
+    }
+    .cards-row .card { flex: 1; text-align: left; }
+    .cards-row .card .label { font-size: 18px; color: #5CE4A1; font-weight: 700; }
+    .cards-row .card .body { font-size: 20px; color: #FFFFFF; margin-top: 6px; }
+  </style>
+</head>
+<body>
+  <div class="root" data-composition-id="root" data-width="1080" data-height="1080" data-start="0">
+    <div class="brand-mark">
+      <div class="dot"></div>
+      <div class="name">HyperFrames Demo</div>
+    </div>
+
+    <!-- ==================== 场景 1：封面（0-8s）==================== -->
+    <div class="scene" data-composition-id="cover" data-width="1080" data-height="1080">
+      <div class="bg-gradient"></div>
+      <div class="bg-grid"></div>
+      <div class="scene-content">
+        <div class="eyebrow">Ali 厂长 · AI 效率</div>
+        <div class="big-4">4</div>
+        <div class="title-xl">让 Claude Code<br/>替你干一天的</div>
+        <div class="title-xl highlight">4 个习惯</div>
+        <div class="body">差别不在模型，在<span class="highlight">你会不会用</span></div>
+      </div>
+    </div>
+
+    <!-- ==================== 场景 2：习惯 1·问题（8-20s）==================== -->
+    <div class="scene" data-composition-id="habit1-problem" data-width="1080" data-height="1080">
+      <div class="bg-gradient"></div>
+      <div class="bg-grid"></div>
+      <div class="scene-content">
+        <div class="eyebrow">习惯 01 · 它话太多，要你做的事容易被埋掉</div>
+        <div class="title-l">一次回复给你写一大堆<br/>中间夹着 <span class="highlight-orange">一句关键事</span></div>
+        <div class="claude-ui">
+          <div class="claude-ui-header">
+            <span class="claude-ui-dot r"></span>
+            <span class="claude-ui-dot y"></span>
+            <span class="claude-ui-dot g"></span>
+            <span class="claude-ui-title">Claude</span>
+          </div>
+          <div class="claude-ui-body">
+            <div class="claude-ui-line muted">好，我先看一下你这个项目的目录结构...</div>
+            <div class="claude-ui-line muted">找到 /api/users 的路由文件了，分析一下...</div>
+            <div class="claude-ui-line muted">读完之后发现中间件层有个 bug...</div>
+            <div class="claude-ui-line muted">顺便检查了一下登录逻辑...</div>
+            <div class="claude-ui-line muted">还顺手优化了一下导入路径...</div>
+            <div class="claude-ui-line muted">差不多就这样，整体改动不算大。</div>
+            <div class="claude-ui-line highlight-warn">你把那个环境变量配一下</div>
+          </div>
+        </div>
+        <div class="body"><span class="highlight-orange">你十有八九看漏</span>，它就在那儿<span class="highlight-orange">干等你</span></div>
+      </div>
+      <div class="subtitle-bar">
+        <div class="text">然后它就在那儿干等着，你都不知道它在等你</div>
+      </div>
+    </div>
+
+    <!-- ==================== 场景 3：习惯 1·怎么做（20-32s）==================== -->
+    <div class="scene" data-composition-id="habit1-solution" data-width="1080" data-height="1080">
+      <div class="bg-gradient"></div>
+      <div class="bg-grid"></div>
+      <div class="scene-content">
+        <div class="eyebrow">习惯 01 · 怎么做</div>
+        <div class="title-l">在 <span class="highlight-cyan">CLAUDE.md</span> 里加一句话<br/>让它把你要做的事，<span class="highlight">单独列成勾选清单</span></div>
+        <div class="claude-md">
+          <div class="claude-md-header">
+            <span class="claude-md-filename">📄 CLAUDE.md</span>
+          </div>
+          <div class="claude-md-body">
+<span class="heading"># 工作约定</span>
+
+回复结尾<span class="highlight-orange">如果需要我手动做的事</span>，用
+<span class="code-inline">- [ ]</span> 勾选清单<span class="highlight-cyan">单独列出来</span>。
+
+完成后再给一句话进度回顾。
+          </div>
+        </div>
+        <div class="cards-row">
+          <div class="card card-green">
+            <div class="label">结尾一眼就懂</div>
+            <div class="body">要不要你配合、要干啥，<br/>扫一眼清单就知道</div>
+          </div>
+          <div class="card card-green">
+            <div class="label">进度回顾接得上</div>
+            <div class="body">离开十几分钟再回来，<br/>看一句就接上，不用爬记录</div>
+          </div>
+        </div>
+      </div>
+      <div class="subtitle-bar">
+        <div class="text">我扫一眼结尾就知道它要不要我配合，要我干啥一目了然</div>
+      </div>
+    </div>
+
+    <!-- ==================== 场景 4：总结（32-40s）==================== -->
+    <div class="scene" data-composition-id="summary" data-width="1080" data-height="1080">
+      <div class="bg-gradient"></div>
+      <div class="bg-grid"></div>
+      <div class="scene-content">
+        <div class="eyebrow">四个做法，说到底是一件事</div>
+        <div class="title-l">能交出去的尽量交，<br/>自己只管<span class="highlight">拍板把关</span></div>
+        <div class="flow-row">
+          <div class="flow-step fs-1">
+            <div class="num">1</div>
+            <div class="name">待办清单</div>
+            <div class="desc">要你做的事一目了然</div>
+          </div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step fs-2">
+            <div class="num">2</div>
+            <div class="name">出声提醒</div>
+            <div class="desc">干完活叮一声</div>
+          </div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step fs-3">
+            <div class="num">3</div>
+            <div class="name">ultracode</div>
+            <div class="desc">多花 token 少返工</div>
+          </div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step fs-4">
+            <div class="num">4</div>
+            <div class="name">常驻 Agent</div>
+            <div class="desc">7×24 替你干</div>
+          </div>
+        </div>
+        <div class="body">先从 <span class="highlight-cyan">1、2</span> 上手，<span class="highlight">十分钟就能见效</span></div>
+        <div class="end-circle">Ali 厂长<br/>本期完结</div>
+      </div>
+      <div class="subtitle-bar">
+        <div class="text">别忘了点赞关注，我们下期再见</div>
+      </div>
+    </div>
+
+    <!-- ====== GSAP + 时间线 ====== -->
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+    <script>
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+
+      // ===== 场景切换宏 =====
+      var sceneNames = ['cover', 'habit1-problem', 'habit1-solution', 'summary'];
+
+      // 工具：把对应 scene 立即显示 / 隐藏
+      function showScene(name) {
+        for (var i = 0; i < sceneNames.length; i++) {
+          var el = document.querySelector('[data-composition-id="' + sceneNames[i] + '"]');
+          if (el) el.hidden = (sceneNames[i] !== name);
+        }
+      }
+
+    // ===== 时间线编排 =====
+    // 总时长 ~40s
+    // 场景 1 封面：0-8s
+    // 场景 2 习惯 1·问题：8-20s
+    // 场景 3 习惯 1·怎么做：20-32s
+    // 场景 4 总结：32-40s
+
+    // 工具：把对应 scene 立即显示 / 隐藏
+    function showScene(name) {
+      var scenes = ['cover', 'habit1-problem', 'habit1-solution', 'summary'];
+      for (var i = 0; i < scenes.length; i++) {
+        var el = document.querySelector('[data-composition-id="' + scenes[i] + '"]');
+        if (el) el.hidden = (scenes[i] !== name);
+      }
+    }
+
+      // ---- 场景 1：封面 0-8s ----
+      showScene('cover');
+      tl.from('[data-composition-id="cover"] .eyebrow', { y: 30, opacity: 0, duration: 0.7, ease: 'power3.out' }, 0.3);
+      tl.from('[data-composition-id="cover"] .big-4', { scale: 0.6, opacity: 0, duration: 1.0, ease: 'back.out(1.4)' }, 0.6);
+      tl.from('[data-composition-id="cover"] .title-xl', { y: 40, opacity: 0, duration: 0.7, ease: 'power3.out', stagger: 0.2 }, 1.2);
+      tl.from('[data-composition-id="cover"] .body', { y: 20, opacity: 0, duration: 0.6, ease: 'power2.out' }, 2.2);
+      // 封面 hold 到 8s
+      const t1End = 8.0;
+
+      // ---- 场景 2：习惯 1·问题 8-20s ----
+      tl.call(() => showScene('habit1-problem'), [], t1End);
+      tl.from('[data-composition-id="habit1-problem"] .eyebrow', { y: 30, opacity: 0, duration: 0.6, ease: 'power3.out' }, t1End + 0.2);
+      tl.from('[data-composition-id="habit1-problem"] .title-l', { y: 40, opacity: 0, duration: 0.7, ease: 'power3.out' }, t1End + 0.5);
+      tl.from('[data-composition-id="habit1-problem"] .claude-ui', { y: 60, opacity: 0, duration: 0.8, ease: 'power2.out' }, t1End + 1.0);
+      tl.from('[data-composition-id="habit1-problem"] .claude-ui-line', { x: -20, opacity: 0, duration: 0.4, ease: 'power2.out', stagger: 0.08 }, t1End + 1.4);
+      tl.from('[data-composition-id="habit1-problem"] .body', { y: 20, opacity: 0, duration: 0.6, ease: 'power2.out' }, t1End + 3.5);
+      tl.from('[data-composition-id="habit1-problem"] .subtitle-bar', { y: 80, opacity: 0, duration: 0.6, ease: 'power3.out' }, t1End + 4.0);
+      // highlight warn 行特殊脉冲
+      tl.from('[data-composition-id="habit1-problem"] .claude-ui-line.highlight-warn', { scale: 1.2, duration: 0.4, ease: 'back.out(2)' }, t1End + 2.5);
+      const t2End = 20.0;
+
+      // ---- 场景 3：习惯 1·怎么做 20-32s ----
+      tl.call(() => showScene('habit1-solution'), [], t2End);
+      tl.from('[data-composition-id="habit1-solution"] .eyebrow', { y: 30, opacity: 0, duration: 0.6, ease: 'power3.out' }, t2End + 0.2);
+      tl.from('[data-composition-id="habit1-solution"] .title-l', { y: 40, opacity: 0, duration: 0.7, ease: 'power3.out' }, t2End + 0.5);
+      tl.from('[data-composition-id="habit1-solution"] .claude-md', { y: 50, opacity: 0, duration: 0.8, ease: 'power2.out' }, t2End + 1.0);
+      tl.from('[data-composition-id="habit1-solution"] .card', { y: 30, opacity: 0, duration: 0.6, ease: 'power2.out', stagger: 0.15 }, t2End + 2.5);
+      tl.from('[data-composition-id="habit1-solution"] .subtitle-bar', { y: 80, opacity: 0, duration: 0.6, ease: 'power3.out' }, t2End + 3.0);
+      const t3End = 32.0;
+
+      // ---- 场景 4：总结 32-40s ----
+      tl.call(() => showScene('summary'), [], t3End);
+      tl.from('[data-composition-id="summary"] .eyebrow', { y: 30, opacity: 0, duration: 0.6, ease: 'power3.out' }, t3End + 0.2);
+      tl.from('[data-composition-id="summary"] .title-l', { y: 40, opacity: 0, duration: 0.7, ease: 'power3.out' }, t3End + 0.5);
+      tl.from('[data-composition-id="summary"] .flow-step', { y: 40, opacity: 0, duration: 0.5, ease: 'back.out(1.2)', stagger: 0.18 }, t3End + 1.2);
+      tl.from('[data-composition-id="summary"] .flow-arrow', { opacity: 0, scale: 0, duration: 0.3, ease: 'back.out(1.4)', stagger: 0.18 }, t3End + 1.5);
+      tl.from('[data-composition-id="summary"] .body', { y: 20, opacity: 0, duration: 0.6, ease: 'power2.out' }, t3End + 3.0);
+      tl.from('[data-composition-id="summary"] .end-circle', { scale: 0, opacity: 0, duration: 0.8, ease: 'back.out(1.4)' }, t3End + 3.5);
+      tl.from('[data-composition-id="summary"] .subtitle-bar', { y: 80, opacity: 0, duration: 0.6, ease: 'power3.out' }, t3End + 4.0);
+
+      // 总时长 40s
+      tl.to({}, { duration: 0 }, 40.0);
+
+      window.__timelines['root'] = tl;
+    </script>
+  </div>
+</body>
+</html>
