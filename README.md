@@ -46,6 +46,28 @@ AI-WeMedia-Tools/
 
 ---
 
+## 🧩 分类技能包（Skills）布局
+
+每个**分类**的技能包单独放在它自己的分类文件夹内（`<分类>/AI-<分类>-Skills/`），
+代码本体在对应 `<分类>/Codes/`，技能只沉淀「怎么做 / 怎么排错」的方法论。
+跨分类的「模块脚手架」元技能保留在独立的 `AI-WeMedia-Skills/`（见下）。
+
+| 分类 | 技能包路径 | 阶段 | 说明 |
+|------|-----------|------|------|
+| `AI-Articles-Tools` | `AI-Articles-Tools/AI-Articles-Skills/SKILL.md` | 🟢 完整可用 | 采集（链接/文案/视频）+ 二创（头条/公众号双风格），含离线 mock 全流程与已知坑 |
+| `AI-Images-Tools` | `AI-Images-Tools/AI-Images-Skills/SKILL.md` | 🟡 占位 | 规划范围 + 引用脚手架落地 |
+| `AI-Musics-Tools` | `AI-Musics-Tools/AI-Musics-Skills/SKILL.md` | 🟡 占位 | 规划范围 + 引用脚手架落地 |
+| `AI-Prompts-Tools` | `AI-Prompts-Tools/AI-Prompts-Skills/SKILL.md` | 🟢 进行中 | 含已有 `Prompts-Back-Calculate` 反推实现说明 |
+| `AI-Sounds-Tools` | `AI-Sounds-Tools/AI-Sounds-Skills/SKILL.md` | 🟡 占位 | 规划范围 + 引用脚手架落地 |
+| `AI-Videos-Tools` | `AI-Videos-Tools/AI-Videos-Skills/SKILL.md` | 🟡 占位 | 规划范围 + 引用脚手架落地 |
+| `AI-Webs-Tools` | `AI-Webs-Tools/AI-Webs-Skills/SKILL.md` | 🟡 占位 | 规划范围 + 引用脚手架落地 |
+
+**全局脚手架技能（跨分类）**：`AI-WeMedia-Skills/ai-category-module-scaffold/SKILL.md`
+——用于为任一新分类脚手架「采集 → 二创 → SQLite 持久化 → mock 离线 pipeline → CLI → 测试」完整模块，
+内附三大已知坑（mock 改写误判标题 / 头条移动版 SSR / 导语重复）及修复。各分类占位技能均引用它来落地。
+
+---
+
 ## 🗺️ 演进路线图（三阶段）
 
 整体采用 **「先技能、再软件、后整合」** 的渐进式演进策略，逐个文件夹落地，边用边完善。
