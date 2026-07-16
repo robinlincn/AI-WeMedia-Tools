@@ -142,6 +142,12 @@ python -m src.cli list                    # 查看全部采集源与二创产物
 - 用户改 Role.md 即可让后续所有二创沿用新的角色风格；保留原有硬编码 system 里的格式约束（≤30 字标题、相似度 ≤10%、去 AI 腔等）。
 - **注意**：Role.md 内不要写"标题党"这个字面词——`src/creator/llm.py` 的 mock 用 `"标题党" in system` 判定标题任务分支，注入后会把改写误判为标题任务。已统一使用"标题感"代替。
 
+
+> **Fallback 链（按顺序找第一个存在且非空的文件）**：1) `AI-Global/Prompts/Role.md`（全局共享，用户维护点） → 2) `AI-Articles-Tools/AI-Articles-Prompts/Role.md`（分类私有，回退）。改 Role.md 时优先改全局版。
+
+### 本地产物清理
+- 采集 + 二创产物（base64 内嵌图后单篇可达 MB）已通过 `.gitignore` 排除，但仍占本地磁盘。
+- 工具：`scripts/cleanup_local_products.py`，默认清 5 天前，支持 `--dry-run` / `--days N` / `--yes`；作用域仅限 `AI-Articles-Tools/Articles/` 与 `AI-Articles-Tools/OutArticles/`。
 ## 八、⚠️ 已知坑与排错（务必先看）
 
 ### 坑 1：二创正文整段变成标题文本

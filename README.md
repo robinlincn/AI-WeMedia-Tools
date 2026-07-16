@@ -98,7 +98,7 @@ AI-WeMedia-Tools/
 
 | 模块 | 方向 | 当前阶段 | 说明 |
 |------|------|----------|------|
-| `AI-Articles-Tools` | 文章优化及二创 | 🟢 进行中 | 采集（链接/文案/视频）+ 二创（双风格排版：头条/公众号）已落地，已用真实头条链接（VideoRAG）验证；代码见 `AI-Articles-Tools/Codes` |
+| `AI-Articles-Tools` | 文章优化及二创 | 🟢 进行中 | 采集（链接/文案/视频）+ 二创（双风格排版：头条/公众号）已落地，已用真实头条链接（VideoRAG）验证；含 `scripts/cleanup_local_products.py` 自动清理 5 天前的本地产物；提示词母版在 `AI-Global/Prompts/Role.md`（全局） ；代码见 `AI-Articles-Tools/Codes` |
 | `AI-Images-Tools` | 图片制作及效果 | 🟡 规划中 | 待落地 Skills |
 | `AI-Musics-Tools` | 音乐制作 | 🟡 规划中 | 待落地 Skills |
 | `AI-Prompts-Tools` | 关键词及反推 | 🟢 进行中 | `Prompts-Back-Calculate` 已有初步代码 |
@@ -117,6 +117,13 @@ AI-WeMedia-Tools/
 - 每次有新功能落地或阶段推进，请 **更新本文件对应进度表**，并提交到 GitHub 以保持版本一致；
 - 依赖（`node_modules`）、视频/帧/日志等生成产物已通过 `.gitignore` 排除，避免仓库体积膨胀。
 
+### 本地产物清理
+
+- 采集 + 二创产物（含 base64 内嵌图片，单篇可达 MB 级）虽已通过 `.gitignore` 排除不入库，但仍会撑大本地磁盘。
+- 工具：`scripts/cleanup_local_products.py`，默认清理 **5 天前**的产物子目录；支持 `--dry-run`（只看不动手）、`--days N`（自定义阈值）、`--yes`（跳过确认）。
+- **作用域仅限** `AI-Articles-Tools/Articles/` 与 `AI-Articles-Tools/OutArticles/`，含路径安全网（拒绝 `AI-Global`、`Codes`、`.git`、`.workbuddy` 等关键目录）。
+- 推荐：`python scripts/cleanup_local_products.py --dry-run` 预览，再加 `--yes` 执行。
+
 ---
 
 ## 📝 更新日志
@@ -124,3 +131,4 @@ AI-WeMedia-Tools/
 - **2026-07-09**：初始化项目规划，建立目录结构与三阶段演进路线图，首次提交并推送至 GitHub。
 - **2026-07-09**：落地 `AI-Articles-Tools` 模块——内容采集（链接/文案/视频）+ 二次创作（标题/正文/配图/头条排版），数据持久化到 SQLite；新增模块 `Codes/README.md` 与离线冒烟测试，修复 mock 改写任务被误判为标题任务的 bug。
 - **2026-07-16**：迭代 `AI-Articles-Tools` 排版——修复采集 md 图片丢图（图片前后必须各空一行，Markdown 标准）；重写 `src/creator/layout.py` 双风格模板，贴合 m.toutiao.com 移动端真实样式（短段 + 关键名词加粗 + 强引导收束）与公众号编辑器粘贴样式（段间双空行 + 关键句加粗 + 文末引导卡片）。真实头条链接（VideoRAG）跑通：采集 6 张原图入库、二创产出 3 张真实配图 + 双风格 md；同步更新 `AI-Articles-Skills/SKILL.md` 与 `.workbuddy/memory/MEMORY.md`。
+- **2026-07-16**：第三次迭代——新增 `scripts/cleanup_local_products.py`（自动清理 `AI-Articles-Tools/Articles/` 与 `OutArticles/` 下 N 天前的本地产物，支持 `--days` / `--dry-run` / `--yes`）；`src/creator/rewrite.py` 增加 Role.md **fallback 链**：优先 `AI-Global/Prompts/Role.md`（全局共享，用户维护点），回退到 `AI-Articles-Tools/AI-Articles-Prompts/Role.md`；同步把优化版 Role.md 写入 `AI-Global/Prompts/Role.md`（两处一致）。提交并推送至 GitHub。

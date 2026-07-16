@@ -19,15 +19,25 @@ from src.db import Database
 from src.models import CreationResult, MediaItem
 
 # 提示词母版：从 AI-Articles-Prompts/Role.md 读取（用户维护），作为角色定位注入到 system。
-_ROLE_MD_PATH = Path(__file__).resolve().parents[3] / "AI-Articles-Prompts" / "Role.md"
+# Role.md 查找链（按顺序找到第一个存在且非空的文件即用）：
+#   1) AI-Global/Prompts/Role.md          全局共享，用户最新维护点
+#   2) <分类>/AI-<分类>-Prompts/Role.md   分类私有，回退
+_ROLE_MD_CANDIDATES = [
+    Path(__file__).resolve().parents[4] / "AI-Global" / "Prompts" / "Role.md",
+    Path(__file__).resolve().parents[3] / "AI-Articles-Prompts" / "Role.md",
+]
 
 
 def _load_role_prompt() -> str:
-    """读取 Role.md 作为角色定位；若文件不存在或为空，返回空串（不阻塞）。"""
-    try:
-        return _ROLE_MD_PATH.read_text(encoding="utf-8").strip()
-    except OSError:
-        return ""
+    """按 _ROLE_MD_CANDIDATES 顺序找 Role.md；找到第一个存在且非空的就用，都没有则返回空串。"""
+    for p in _ROLE_MD_CANDIDATES:
+        try:
+            content = p.read_text(encoding="utf-8").strip()
+        except OSError:
+            continue
+        if content:
+            return content
+    return ""
 
 
 _ROLE_PREFIX = "\n\n# 角色定位（来自 AI-Articles-Prompts/Role.md）\n\n"

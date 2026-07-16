@@ -112,3 +112,24 @@
 ### 同步
 - `AI-Articles-Skills/SKILL.md` 新增"提示词母版"章节，说明 Role.md → system 注入链路；
 - 本长期记忆新增本章节。
+
+## 2026-07-16 第四次迭代：产物清理脚本 + Role fallback 链
+
+### 新增 `scripts/cleanup_local_products.py`
+- 作用域：`AI-Articles-Tools/Articles/` 与 `OutArticles/`（gitignore 内，不会误删入库文件）。
+- 行为：扫描直接子目录的 mtime，超过 `--days N`（默认 5）就 `shutil.rmtree`；支持 `--dry-run`、`--yes`、路径安全网（`AI-Global/Codes/.git/.workbuddy` 一律拒绝）。
+- 实测：造 7 天前的假产物 → dry-run 显示清单 → `--yes` 真删成功 → 再 dry-run 显示空。
+
+### Role.md fallback 链
+- `src/creator/rewrite.py` 改为：1) `AI-Global/Prompts/Role.md`（全局优先） → 2) `AI-Articles-Tools/AI-Articles-Prompts/Role.md`（分类回退）。
+- 把优化版 Role.md（2513 字节，含"标题感"修复）同步写入 `AI-Global/Prompts/Role.md`，两处一致；用户后续改全局版即可。
+- 经验：fallback 链的优先级含义要明确——若全局版比分类版"弱"，会让分类优化版失效。统一两处版本最稳。
+
+### 提交与推送
+- commit `4fa43fd`：feat(AI-Articles-Tools): 排版升级 + 图片 base64 内嵌 + Role.md 注入二创；7 文件 +280/-44；
+- push：`b0165cd..4fa43fd main -> main` 成功（SSH 认证）。
+
+### 同步
+- `README.md`：进度行追加 scripts 与全局 Role 说明 + 新增"本地产物清理"小节；
+- `AI-Articles-Skills/SKILL.md`：在"提示词母版"小节追加 fallback 链 + 新增"本地产物清理"小节；
+- 本长期记忆新增本章节。
