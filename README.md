@@ -98,7 +98,7 @@ AI-WeMedia-Tools/
 
 | 模块 | 方向 | 当前阶段 | 说明 |
 |------|------|----------|------|
-| `AI-Articles-Tools` | 文章优化及二创 | 🟢 进行中 | 采集（链接/文案/视频）+ 二创（标题/正文/配图/头条排版）已落地，代码见 `AI-Articles-Tools/Codes` |
+| `AI-Articles-Tools` | 文章优化及二创 | 🟢 进行中 | 采集（链接/文案/视频）+ 二创（双风格排版：头条/公众号）已落地，已用真实头条链接（VideoRAG）验证；代码见 `AI-Articles-Tools/Codes` |
 | `AI-Images-Tools` | 图片制作及效果 | 🟡 规划中 | 待落地 Skills |
 | `AI-Musics-Tools` | 音乐制作 | 🟡 规划中 | 待落地 Skills |
 | `AI-Prompts-Tools` | 关键词及反推 | 🟢 进行中 | `Prompts-Back-Calculate` 已有初步代码 |
@@ -123,3 +123,4 @@ AI-WeMedia-Tools/
 
 - **2026-07-09**：初始化项目规划，建立目录结构与三阶段演进路线图，首次提交并推送至 GitHub。
 - **2026-07-09**：落地 `AI-Articles-Tools` 模块——内容采集（链接/文案/视频）+ 二次创作（标题/正文/配图/头条排版），数据持久化到 SQLite；新增模块 `Codes/README.md` 与离线冒烟测试，修复 mock 改写任务被误判为标题任务的 bug。
+- **2026-07-16**：迭代 `AI-Articles-Tools` 排版——修复采集 md 图片丢图（图片前后必须各空一行，Markdown 标准）；重写 `src/creator/layout.py` 双风格模板，贴合 m.toutiao.com 移动端真实样式（短段 + 关键名词加粗 + 强引导收束）与公众号编辑器粘贴样式（段间双空行 + 关键句加粗 + 文末引导卡片）。真实头条链接（VideoRAG）跑通：采集 6 张原图入库、二创产出 3 张真实配图 + 双风格 md；同步更新 `AI-Articles-Skills/SKILL.md` 与 `.workbuddy/memory/MEMORY.md`。

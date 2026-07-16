@@ -18,14 +18,30 @@ from src.creator.llm import LLMClient
 from src.db import Database
 from src.models import CreationResult, MediaItem
 
+# 提示词母版：从 AI-Articles-Prompts/Role.md 读取（用户维护），作为角色定位注入到 system。
+_ROLE_MD_PATH = Path(__file__).resolve().parents[3] / "AI-Articles-Prompts" / "Role.md"
+
+
+def _load_role_prompt() -> str:
+    """读取 Role.md 作为角色定位；若文件不存在或为空，返回空串（不阻塞）。"""
+    try:
+        return _ROLE_MD_PATH.read_text(encoding="utf-8").strip()
+    except OSError:
+        return ""
+
+
+_ROLE_PREFIX = "\n\n# 角色定位（来自 AI-Articles-Prompts/Role.md）\n\n"
+
 _MAX_TITLE = 30
 
+
+_ROLE = _load_role_prompt()
 
 TITLE_SYSTEM = (
     "你是一名资深自媒体标题党（褒义）。请为文章起一个不超过30个汉字的标题。"
     "要求：1) 与原标题明显不同；2) 使用钩子技巧（悬念/冲突/数字/反差/利益点）；"
     "3) 有吸引力、能促点击；4) 只返回标题本身，不要解释、不要引号。"
-)
+) + (_ROLE_PREFIX + _ROLE if _ROLE else "")
 
 REWRITE_SYSTEM = (
     "你是一名优秀的自媒体撰稿人。请将下面的原文改写为一篇全新的文章。"
@@ -33,14 +49,14 @@ REWRITE_SYSTEM = (
     "3) 严禁使用“首先/其次/综上所述/值得注意的是”等AI腔套话；"
     "4) 段落短小、节奏明快；5) 与原文表述明显不同（相似度尽量低于10%）；"
     "6) 只返回改写后的正文，不要小标题序号堆砌。"
-)
+) + (_ROLE_PREFIX + _ROLE if _ROLE else "")
 
 CAPTION_SYSTEM = (
     "为文章某一段配图生成素材。严格按以下三行返回，不要多余内容：\n"
     "第1行：中文图注（≤16字，提炼该段画面感）\n"
     "第2行：英文图注（对应翻译）\n"
     "第3行起：给绘图模型的视觉描述 prompt（中文，说明风格与主体）"
-)
+) + (_ROLE_PREFIX + _ROLE if _ROLE else "")
 
 
 def similarity_estimate(a: str, b: str) -> float:

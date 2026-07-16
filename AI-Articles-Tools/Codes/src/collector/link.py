@@ -60,7 +60,8 @@ class LinkCollector(BaseCollector):
         for u, name in img_map.items():
             self._download_one(folder, u, name, url)
 
-        md_body = self._render(blocks, img_map)
+        self._current_folder = folder
+        md_body = self._render(blocks, img_map, embed_inline=True)
         raw_text = self._to_raw_text(blocks)
 
         md_path = self.save_md(
@@ -212,7 +213,34 @@ class LinkCollector(BaseCollector):
             return
 
     @staticmethod
-    def _render(blocks: list, img_map: dict) -> str:
+    def _embed_data_url(img_path: str | Path) -> str | None:
+        """把本地图片读取并编码为 base64 data URL；图片不存在或过大（>5MB）时返回 None。
+
+        返回形如 `data:image/png;base64,iVBORw0KG...`，可直接嵌入 Markdown 图片语法，
+        让产物 md 自包含，复制到任何编辑器（Typora / VSCode / 第三方自媒体工具）都能直接显示图片。
+        """
+        from base64 import b64encode
+        from mimetypes import guess_type
+
+        p = Path(img_path)
+        if not p.is_file():
+            return None
+        size = p.stat().st_size
+        if size > 5 * 1024 * 1024:  # 单图 >5MB 跳过内联（md 会膨胀且部分编辑器截断）
+            return None
+        try:
+            data = p.read_bytes()
+        except OSError:
+            return None
+        mime = guess_type(p.name)[0] or "image/jpeg"
+        return f"data:{mime};base64,{b64encode(data).decode('ascii')}"
+
+    def _render(self, blocks: list, img_map: dict, *, embed_inline: bool = False) -> str:
+        """生成 md 正文。
+        - embed_inline=False（默认）：图片用相对路径 `images/xxx`，产物需整份文件夹一起发布。
+        - embed_inline=True：图片直接 base64 内嵌进 md（data URL），产物自包含，
+          复制到任何编辑器（包括无法访问本地的第三方自媒体工具）都能正常显示。
+        """
         out: list = []
         for kind, data in blocks:
             if kind == "h":
@@ -224,7 +252,26 @@ class LinkCollector(BaseCollector):
             elif kind == "img":
                 nm = img_map.get(data)
                 if nm:
-                    out.append(f"![配图](images/{nm})")
+                    # 图前补一行空行（Markdown 标准：图片块必须前后各空一行，否则丢图）
+                    if out and out[-1] != "":
+                        out.append("")
+                    if embed_inline:
+                        # _download_one 会按 Content-Type 重写扩展名（如 .jpg → .png），
+                        # 不能直接用 img_map 里的扩展名去找文件。改用 stem 通配匹配。
+                        folder_attr = getattr(self, "_current_folder", None)
+                        if folder_attr:
+                            stem = Path(nm).stem
+                            matches = list((folder_attr / "images").glob(f"{stem}.*"))
+                            if matches:
+                                data_url = self._embed_data_url(matches[0])
+                                if data_url:
+                                    out.append(f"![配图]({data_url})")
+                                    out.append("")
+                                    continue
+                        # 兜底走相对路径
+                        out.append(f"![配图](images/{nm})")
+                    else:
+                        out.append(f"![配图](images/{nm})")
             elif kind == "list":
                 for it in data:
                     out.append(f"- {it}")
