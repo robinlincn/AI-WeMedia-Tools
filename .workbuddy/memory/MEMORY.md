@@ -32,7 +32,8 @@
 ## 技能包布局约定
 - **每个分类的使用/操作技能就近放在该分类文件夹内**：`<分类>/AI-<分类>-Skills/SKILL.md`（如 `AI-Articles-Tools/AI-Articles-Skills/SKILL.md`）。代码本体在对应 `<分类>/Codes/`，技能只沉淀方法论与避坑。
 - **跨分类的「脚手架」元技能保留在 `AI-WeMedia-Skills/ai-category-module-scaffold/`**：用于为任一新分类生成完整模块骨架，不属于任何单一分类。
-- 各分类占位技能（Images/Musics/Sounds/Videos/Webs）均为 🟡 规划中，引用脚手架技能落地；Articles 为 🟢 完整可用，Prompts 为 🟢 进行中（含 Prompts-Back-Calculate）。
+- 各分类占位技能（Musics/Sounds/Videos/Webs）均为 🟡 规划中，引用脚手架技能落地；**Images 为 🟢 进行中**（已接入局域网 ComfyUI，Boogu 文生图 + Wan2.2 图生视频均真机验证）；Articles 为 🟢 完整可用，Prompts 为 🟢 进行中（含 Prompts-Back-Calculate）。
+- **AI-Images-Skills 关键事实**：技能包 `AI-Images-Tools/AI-Images-Skills/`，纯标准库（`comfy_client.py`+`run.py`），调用 `192.168.31.243:8188`；内置 `image_boogu_image_0_1_turbo_t2i.json`（Boogu 文生图）与 `video_wan22_i2v.json`（Wan2.2 图生视频 webm），均经真机出图/出片验证。`--set positive_prompt=.../seed=.../length=...` 参数化。
 
 ## 关键技术约定（AI-Articles-Tools）
 - 分类代码统一放在对应分类目录的 `Codes/` 子目录（如 `AI-Articles-Tools/Codes`）。

@@ -155,7 +155,7 @@ def build_and_run(args, cfg: dict) -> dict:
     if not ok:
         raise ComfyError(f"无法连接 ComfyUI（{client.base}）：{info.get('error')}")
 
-    workflow_name = args.workflow or defs.get("workflow", "image_basic")
+    workflow_name = args.workflow or defs.get("workflow", "image_boogu_image_0_1_turbo_t2i")
     workflow, wf_path = load_workflow(workflow_name, workflows_dir)
     param_map = load_param_map(workflow_name, workflows_dir)
 

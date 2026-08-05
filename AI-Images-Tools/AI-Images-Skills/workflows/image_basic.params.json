@@ -1,9 +1,0 @@
-{
-  "positive_prompt": { "node": "2", "input": "text" },
-  "negative_prompt": { "node": "3", "input": "text" },
-  "seed":            { "node": "4", "input": "seed" },
-  "steps":           { "node": "4", "input": "steps" },
-  "cfg":             { "node": "4", "input": "cfg" },
-  "width":           { "node": "7", "input": "width" },
-  "height":          { "node": "7", "input": "height" }
-}

@@ -16,13 +16,15 @@ python -m src.run --ping
 
 ## 3. 出图 / 出视频
 ```bash
-python -m src.run --workflow image_basic \
-    --set positive_prompt="a calm lake at dawn" --set seed=42 --set width=1024 --set height=1024
+# Boogu 文生图（真机验证）
+python -m src.run --workflow image_boogu_image_0_1_turbo_t2i \
+    --set positive_prompt="一只戴草帽的橘猫，阳光，高清" --set seed=42
 
-python -m src.run --workflow video_basic \
-    --set positive_prompt="gentle waves" --set frames=25 --set seed=7
+# Wan2.2 图生视频（真机验证，输出 webm）
+python -m src.run --workflow video_wan22_i2v \
+    --set positive_prompt="A serene lake at dawn, cinematic" --set length=49 --set fps=16
 ```
-产物落在 `AI-Images-Tools/OutImages/<prompt_id>/`。
+产物落在 `AI-Images-Tools/OutImages/<prompt_id>/`（图片 `*.png`、视频 `*.webm`）。
 
 ## 4. 端到端测试
 ```bash
@@ -38,7 +40,7 @@ python -m tests.e2e_test --real     # 指向真实 ComfyUI 出图/出片
 
 ## 前置条件
 - 目标机 ComfyUI 以 `--listen 0.0.0.0` 启动且防火墙放行 8188；
-- 工作流引用的模型 / 自定义节点（视频需 `VHS_VideoCombine` 等）已就位；
+- 工作流引用的模型已就位（Boogu：`boogu_image_turbo_fp8_scaled`+`CLIPLoader(type=boogu)`；Wan2.2：`wan2.2_i2v_low_noise_14B`+`CLIPLoader(type=wan)`+`Wan2_1_VAE`，原生 `SaveWEBM` 落盘，无需 `VHS_VideoCombine`）；
 - `workflows/*.json` 须为 ComfyUI **API 格式**（"Export (API Format)"）。
 
 详细参数与排错见 [SKILL.md](./SKILL.md)。

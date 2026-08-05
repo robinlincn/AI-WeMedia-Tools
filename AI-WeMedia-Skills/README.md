@@ -16,7 +16,7 @@
 | 分类 | 技能包路径 |
 | --- | --- |
 | `AI-Articles-Tools` | `AI-Articles-Tools/AI-Articles-Skills/SKILL.md` |
-| `AI-Images-Tools` | `AI-Images-Tools/AI-Images-Skills/SKILL.md` |
+| `AI-Images-Tools` | `AI-Images-Tools/AI-Images-Skills/SKILL.md`（🟢 进行中：已接入 ComfyUI，Boogu 文生图 + Wan2.2 视频真机验证） |
 | `AI-Musics-Tools` | `AI-Musics-Tools/AI-Musics-Skills/SKILL.md` |
 | `AI-Prompts-Tools` | `AI-Prompts-Tools/AI-Prompts-Skills/SKILL.md` |
 | `AI-Sounds-Tools` | `AI-Sounds-Tools/AI-Sounds-Skills/SKILL.md` |

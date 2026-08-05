@@ -79,7 +79,7 @@ def main():
     names = [n.strip() for n in args.workflows.split(",") if n.strip()]
 
     # 映射到工作流文件名
-    name_map = {"image": "image_basic", "video": "video_basic"}
+    name_map = {"image": "image_boogu_image_0_1_turbo_t2i", "video": "video_wan22_i2v"}
     workflows = [name_map.get(n, n) for n in names]
 
     base_url = "http://192.168.31.243:8188"
@@ -91,8 +91,8 @@ def main():
         print(">>> 已启动本地 Mock ComfyUI @", base_url)
 
     overrides = {
-        "image_basic": ["positive_prompt=a calm lake at dawn", "seed=42", "width=768", "height=768"],
-        "video_basic": ["positive_prompt=gentle waves on a sunny beach", "seed=7", "frames=17"],
+        "image_boogu_image_0_1_turbo_t2i": ["positive_prompt=a calm lake at dawn", "seed=42"],
+        "video_wan22_i2v": ["positive_prompt=gentle waves on a sunny beach", "seed=7", "length=17"],
     }
 
     results = []

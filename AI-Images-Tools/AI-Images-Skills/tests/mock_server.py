@@ -73,15 +73,16 @@ class _Handler(BaseHTTPRequestHandler):
             pid = uuid.uuid4().hex
             image_nodes = [nid for nid, n in wf.items() if n.get("class_type") == "SaveImage"]
             video_nodes = [nid for nid, n in wf.items()
-                           if ("VideoCombine" in n.get("class_type", "")
-                               or "VHS" in n.get("class_type", ""))]
+                           if any(k in n.get("class_type", "")
+                                  for k in ("VideoCombine", "VHS", "SaveWEBM",
+                                            "SaveVideo", "SaveAnimatedWEBP", "SaveAnimatedPNG"))]
             outputs = {}
             for nid in image_nodes:
                 outputs[nid] = {"images": [{"filename": "ComfyUI_mock_image.png",
                                             "subfolder": "", "type": "output"}]}
             for nid in video_nodes:
-                outputs[nid] = {"gifs": [{"filename": "ComfyUI_mock_video.mp4",
-                                          "subfolder": "", "type": "output"}]}
+                outputs[nid] = {"videos": [{"filename": "ComfyUI_mock_video.webm",
+                                            "subfolder": "", "type": "output"}]}
             if not outputs:  # 兜底
                 outputs["out1"] = {"images": [{"filename": "ComfyUI_mock.png",
                                                "subfolder": "", "type": "output"}]}

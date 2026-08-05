@@ -55,7 +55,7 @@ AI-WeMedia-Tools/
 | 分类 | 技能包路径 | 阶段 | 说明 |
 |------|-----------|------|------|
 | `AI-Articles-Tools` | `AI-Articles-Tools/AI-Articles-Skills/SKILL.md` | 🟢 完整可用 | 采集（链接/文案/视频）+ 二创（头条/公众号双风格），含离线 mock 全流程与已知坑 |
-| `AI-Images-Tools` | `AI-Images-Tools/AI-Images-Skills/SKILL.md` | 🟡 占位 | 规划范围 + 引用脚手架落地 |
+| `AI-Images-Tools` | `AI-Images-Tools/AI-Images-Skills/SKILL.md` | 🟢 进行中 | 接入局域网 ComfyUI（192.168.31.243:8188）：Boogu 文生图 + Wan2.2 图生视频，均真机验证；含客户端/CLI/模板/mock 端到端测试 |
 | `AI-Musics-Tools` | `AI-Musics-Tools/AI-Musics-Skills/SKILL.md` | 🟡 占位 | 规划范围 + 引用脚手架落地 |
 | `AI-Prompts-Tools` | `AI-Prompts-Tools/AI-Prompts-Skills/SKILL.md` | 🟢 进行中 | 含已有 `Prompts-Back-Calculate` 反推实现说明 |
 | `AI-Sounds-Tools` | `AI-Sounds-Tools/AI-Sounds-Skills/SKILL.md` | 🟡 占位 | 规划范围 + 引用脚手架落地 |
@@ -99,7 +99,7 @@ AI-WeMedia-Tools/
 | 模块 | 方向 | 当前阶段 | 说明 |
 |------|------|----------|------|
 | `AI-Articles-Tools` | 文章优化及二创 | 🟢 进行中 | 采集（链接/文案/视频）+ 二创（双风格排版：头条/公众号）已落地，已用真实头条链接（VideoRAG）验证；含 `scripts/cleanup_local_products.py` 自动清理 5 天前的本地产物；提示词母版在 `AI-Global/Prompts/Role.md`（全局） ；代码见 `AI-Articles-Tools/Codes` |
-| `AI-Images-Tools` | 图片制作及效果 | 🟡 规划中 | 待落地 Skills |
+| `AI-Images-Tools` | 图片制作及效果 | 🟢 进行中 | 接入局域网 ComfyUI（192.168.31.243:8188）：Boogu 文生图 + Wan2.2 图生视频均真机验证；技能包见 `AI-Images-Tools/AI-Images-Skills/` |
 | `AI-Musics-Tools` | 音乐制作 | 🟡 规划中 | 待落地 Skills |
 | `AI-Prompts-Tools` | 关键词及反推 | 🟢 进行中 | `Prompts-Back-Calculate` 已有初步代码 |
 | `AI-Sounds-Tools` | 声音及声效 | 🟡 规划中 | 待落地 Skills |
@@ -132,3 +132,4 @@ AI-WeMedia-Tools/
 - **2026-07-09**：落地 `AI-Articles-Tools` 模块——内容采集（链接/文案/视频）+ 二次创作（标题/正文/配图/头条排版），数据持久化到 SQLite；新增模块 `Codes/README.md` 与离线冒烟测试，修复 mock 改写任务被误判为标题任务的 bug。
 - **2026-07-16**：迭代 `AI-Articles-Tools` 排版——修复采集 md 图片丢图（图片前后必须各空一行，Markdown 标准）；重写 `src/creator/layout.py` 双风格模板，贴合 m.toutiao.com 移动端真实样式（短段 + 关键名词加粗 + 强引导收束）与公众号编辑器粘贴样式（段间双空行 + 关键句加粗 + 文末引导卡片）。真实头条链接（VideoRAG）跑通：采集 6 张原图入库、二创产出 3 张真实配图 + 双风格 md；同步更新 `AI-Articles-Skills/SKILL.md` 与 `.workbuddy/memory/MEMORY.md`。
 - **2026-07-16**：第三次迭代——新增 `scripts/cleanup_local_products.py`（自动清理 `AI-Articles-Tools/Articles/` 与 `OutArticles/` 下 N 天前的本地产物，支持 `--days` / `--dry-run` / `--yes`）；`src/creator/rewrite.py` 增加 Role.md **fallback 链**：优先 `AI-Global/Prompts/Role.md`（全局共享，用户维护点），回退到 `AI-Articles-Tools/AI-Articles-Prompts/Role.md`；同步把优化版 Role.md 写入 `AI-Global/Prompts/Role.md`（两处一致）。提交并推送至 GitHub。
+- **2026-08-05**：`AI-Images-Tools` 接入局域网 ComfyUI（192.168.31.243:8188）——新建 `AI-Images-Tools/AI-Images-Skills/` 技能包（纯标准库客户端 `comfy_client.py` + CLI `run.py` + 工作流模板 + mock 端到端测试）。真机验证两条链路：**Boogu 文生图**（`image_boogu_image_0_1_turbo_t2i`，1024×1024 PNG）与 **Wan2.2 图生视频**（`video_wan22_i2v`，832×480 / 49 帧 / webm）。SKILL.md 补充 Boogu 与视频调用示例及前置条件。

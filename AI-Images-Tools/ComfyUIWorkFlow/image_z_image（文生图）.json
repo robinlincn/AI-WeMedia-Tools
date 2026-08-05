@@ -1,0 +1,161 @@
+{
+  "9": {
+    "inputs": {
+      "filename_prefix": "z-image-base",
+      "images": [
+        "76:65",
+        0
+      ]
+    },
+    "class_type": "SaveImage",
+    "_meta": {
+      "title": "保存图像"
+    }
+  },
+  "95": {
+    "inputs": {
+      "image": "egyptian_queen.png"
+    },
+    "class_type": "LoadImage",
+    "_meta": {
+      "title": "加载图像"
+    }
+  },
+  "96": {
+    "inputs": {
+      "filename_prefix": "video/LTX_2.3_i2v",
+      "format": "auto",
+      "codec": "auto"
+    },
+    "class_type": "SaveVideo",
+    "_meta": {
+      "title": "保存视频"
+    }
+  },
+  "76:67": {
+    "inputs": {
+      "text": "一张超写实风格的特写肖像照——一位年轻咖啡师正在制作拉花，咖啡馆窗户透进柔和晨光，使用50毫米镜头拍摄，画面比例4:3",
+      "clip": [
+        "76:62",
+        0
+      ]
+    },
+    "class_type": "CLIPTextEncode",
+    "_meta": {
+      "title": "CLIP Text Encode (Positive Prompt)"
+    }
+  },
+  "76:68": {
+    "inputs": {
+      "width": 1024,
+      "height": 1024,
+      "batch_size": 1
+    },
+    "class_type": "EmptySD3LatentImage",
+    "_meta": {
+      "title": "空Latent图像（SD3）"
+    }
+  },
+  "76:63": {
+    "inputs": {
+      "vae_name": "ae.safetensors"
+    },
+    "class_type": "VAELoader",
+    "_meta": {
+      "title": "加载VAE"
+    }
+  },
+  "76:62": {
+    "inputs": {
+      "clip_name": "qwen_3_4b.safetensors",
+      "type": "lumina2",
+      "device": "default"
+    },
+    "class_type": "CLIPLoader",
+    "_meta": {
+      "title": "加载CLIP"
+    }
+  },
+  "76:65": {
+    "inputs": {
+      "samples": [
+        "76:69",
+        0
+      ],
+      "vae": [
+        "76:63",
+        0
+      ]
+    },
+    "class_type": "VAEDecode",
+    "_meta": {
+      "title": "VAE解码"
+    }
+  },
+  "76:70": {
+    "inputs": {
+      "shift": 3,
+      "model": [
+        "76:66",
+        0
+      ]
+    },
+    "class_type": "ModelSamplingAuraFlow",
+    "_meta": {
+      "title": "采样算法（AuraFlow）"
+    }
+  },
+  "76:66": {
+    "inputs": {
+      "unet_name": "z_image_bf16.safetensors",
+      "weight_dtype": "default"
+    },
+    "class_type": "UNETLoader",
+    "_meta": {
+      "title": "UNet加载器"
+    }
+  },
+  "76:71": {
+    "inputs": {
+      "text": "",
+      "clip": [
+        "76:62",
+        0
+      ]
+    },
+    "class_type": "CLIPTextEncode",
+    "_meta": {
+      "title": "CLIP Text Encode (Negative Prompt)"
+    }
+  },
+  "76:69": {
+    "inputs": {
+      "seed": 383157993625853,
+      "steps": 25,
+      "cfg": 4,
+      "sampler_name": "res_multistep",
+      "scheduler": "simple",
+      "denoise": 1,
+      "model": [
+        "76:70",
+        0
+      ],
+      "positive": [
+        "76:67",
+        0
+      ],
+      "negative": [
+        "76:71",
+        0
+      ],
+      "latent_image": [
+        "76:68",
+        0
+      ]
+    },
+    "class_type": "KSampler",
+    "_meta": {
+      "title": "K采样器"
+    }
+  }
+}

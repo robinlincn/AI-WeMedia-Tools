@@ -1,7 +1,0 @@
-{
-  "positive_prompt": { "node": "2", "input": "text" },
-  "seed":            { "node": "9", "input": "seed" },
-  "frames":          { "node": "9", "input": "num_frames" },
-  "width":           { "node": "9", "input": "width" },
-  "height":          { "node": "9", "input": "height" }
-}

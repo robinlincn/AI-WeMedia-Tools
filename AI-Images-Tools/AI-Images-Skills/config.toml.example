@@ -30,7 +30,7 @@ log_file = "logs/run.log"
 
 [defaults]
 # 默认工作流名（对应 workflows/<name>.json + <name>.params.json）
-workflow = "image_basic"
+workflow = "image_boogu_image_0_1_turbo_t2i"
 # 默认参数（可被 CLI --set key=value 覆盖）
 # positive_prompt = "a serene mountain lake at sunrise, cinematic"
 # negative_prompt = "blurry, low quality, watermark"
