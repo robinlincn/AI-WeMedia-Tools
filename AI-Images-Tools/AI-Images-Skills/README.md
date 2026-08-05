@@ -6,7 +6,7 @@
 ## 1. 准备
 ```bash
 cd AI-Images-Tools/AI-Images-Skills
-cp config.toml.example config.toml      # 按需改 base_url 等
+cp config.toml.example config.toml      # 按需改 base_url；若 ComfyUI 开启了 Basic Auth，填写 username/password
 ```
 
 ## 2. 连通性自检

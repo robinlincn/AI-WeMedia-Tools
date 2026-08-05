@@ -150,6 +150,8 @@ def build_and_run(args, cfg: dict) -> dict:
 
     client = ComfyClient(
         base_url=args.base_url or comfy_cfg.get("base_url", "http://192.168.31.243:8188"),
+        username=comfy_cfg.get("username"),
+        password=comfy_cfg.get("password"),
         timeout=float(comfy_cfg.get("timeout", 300)),
         connect_timeout=float(comfy_cfg.get("connect_timeout", 6)),
         max_retries=int(comfy_cfg.get("max_retries", 3)),
@@ -227,6 +229,8 @@ def main():
 
     if args.ping:
         client = ComfyClient(base_url=args.base_url or cfg.get("comfyui", {}).get("base_url", "http://192.168.31.243:8188"),
+                             username=cfg.get("comfyui", {}).get("username"),
+                             password=cfg.get("comfyui", {}).get("password"),
                              connect_timeout=float(cfg.get("comfyui", {}).get("connect_timeout", 6)))
         ok, info = client.ping()
         print(("✅ 连通" if ok else "❌ 不可达") + f" -> {client.base}")

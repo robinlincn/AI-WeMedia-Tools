@@ -224,7 +224,8 @@ python -m src.run --workflow video_ltx2_3_i2v \
 新增/改名参数：编辑对应 `*.params.json` 即可，无需改代码。
 
 ### 配置项（`config.toml`）
-`[comfyui]`：`base_url` / `timeout` / `connect_timeout` / `max_retries` / `retry_backoff` / `poll_interval` / `max_wait`
+`[comfyui]`：`base_url` / `username` / `password` / `timeout` / `connect_timeout` / `max_retries` / `retry_backoff` / `poll_interval` / `max_wait`
+- **Basic Auth**：若 ComfyUI 安装了鉴权插件（如 ComfyUI-Basic-Auth），在 `[comfyui]` 填写 `username` / `password` 即可，客户端会自动在每次请求（含 `/prompt`、`/history`、`/view`、`/upload/image`）携带 `Authorization: Basic` 头。两者留空则按无认证调用（兼容未加插件的实例）。
 `[paths]`：`workflows_dir` / `output_dir` / `log_file`
 `[defaults]`：`workflow` 及各项默认参数（被 CLI `--set` 覆盖）
 

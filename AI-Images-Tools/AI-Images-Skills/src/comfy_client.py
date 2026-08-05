@@ -12,6 +12,7 @@
 """
 from __future__ import annotations
 
+import base64
 import json
 import logging
 import time
@@ -57,6 +58,8 @@ class ComfyClient:
     def __init__(
         self,
         base_url: str,
+        username: str | None = None,
+        password: str | None = None,
         timeout: float = 300,
         connect_timeout: float = 6,
         max_retries: int = 3,
@@ -65,6 +68,8 @@ class ComfyClient:
         max_wait: float = 900,
     ) -> None:
         self.base = base_url.rstrip("/")
+        self.username = username
+        self.password = password
         self.timeout = timeout
         self.connect_timeout = connect_timeout
         self.max_retries = max_retries
@@ -72,13 +77,23 @@ class ComfyClient:
         self.poll_interval = poll_interval
         self.max_wait = max_wait
 
+    def _auth_headers(self) -> dict:
+        """若配置了用户名/密码，返回 HTTP Basic Auth 请求头；否则返回空字典。
+
+        这样：配置认证 -> 自动携带 Authorization；未配置 -> 行为不变（兼容无认证的 ComfyUI）。
+        """
+        if self.username and self.password:
+            token = base64.b64encode(f"{self.username}:{self.password}".encode("utf-8")).decode("ascii")
+            return {"Authorization": f"Basic {token}"}
+        return {}
+
     # ------------------------------------------------------------------ #
     # 底层请求：统一重试 + 超时
     # ------------------------------------------------------------------ #
     def _request(self, method: str, path: str, data=None, *, is_json: bool = True, raw: bool = False):
         url = f"{self.base}{path}"
         body = None
-        headers = {"User-Agent": "ai-images-skills"}
+        headers = {"User-Agent": "ai-images-skills", **self._auth_headers()}
         if data is not None:
             if is_json:
                 body = json.dumps(data).encode("utf-8")
@@ -181,6 +196,7 @@ class ComfyClient:
         headers = {
             "User-Agent": "ai-images-skills",
             "Content-Type": f"multipart/form-data; boundary={boundary}",
+            **self._auth_headers(),
         }
         url = f"{self.base}/upload/image"
         last_err: Exception | None = None

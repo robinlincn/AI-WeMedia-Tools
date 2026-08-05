@@ -7,6 +7,10 @@
 [comfyui]
 # 局域网内 ComfyUI 机器地址（无需末尾斜杠）
 base_url = "http://192.168.31.243:8188"
+# 若 ComfyUI 安装了 Basic Auth 插件（如 ComfyUI-Basic-Auth），在此填写账号密码；
+# 留空则不以认证方式调用（兼容无认证的实例）。密码保存在本文件，config.toml 已被 .gitignore 排除。
+username = "admin"
+password = "CHANGE_ME"
 # 单次 HTTP 读超时（秒）：下载大视频时适当调大
 timeout = 300
 # 连通性快速探针超时（秒）
