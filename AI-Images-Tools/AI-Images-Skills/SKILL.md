@@ -1,6 +1,6 @@
 ---
 name: ai-images-tools
-description: 通过 HTTP API 调用局域网内另一台机器上的 ComfyUI（默认 http://192.168.31.243:8188）执行工作流，生成图片与视频。支持工作流参数化（提示词/尺寸/种子/帧数）、提交到 /prompt、轮询 /history 跟踪进度、从 /view 下载产物，具备连通性检测、重试、超时与清晰日志。（支持文生图 / 文生视频 / 图生视频 I2V；已适配 Boogu、Krea2、Wan2.2、MiniMax-H3、LTX-2.3 等模型）当用户说"用 ComfyUI 出图/出视频""调用局域网 ComfyUI""跑工作流生成图片/视频""提交 ComfyUI 任务并下载产物""图生视频/用图片生成视频"时触发。
+description: 通过 HTTP API 调用局域网内另一台机器上的 ComfyUI（默认 http://192.168.31.243:8188）执行工作流，生成图片与视频。支持工作流参数化（提示词/尺寸/种子/帧数）、提交到 /prompt、轮询 /history 跟踪进度、从 /view 下载产物，具备连通性检测、重试、超时与清晰日志。（支持文生图 / 文生视频 / 图生视频 I2V；已适配 Boogu、Krea2、Wan2.2、MiniMax-H3、LTX-2.3 等模型；含数字人说话视频模板）当用户说"用 ComfyUI 出图/出视频""调用局域网 ComfyUI""跑工作流生成图片/视频""提交 ComfyUI 任务并下载产物""图生视频/用图片生成视频""做数字人/对口型视频/让图片里的人说话"时触发。
 agent_created: true
 ---
 
@@ -50,7 +50,9 @@ AI-Images-Tools/AI-Images-Skills/
 │   ├── video_minimax_h3_i2v.json              # ✅ MiniMax-H3 图生视频 I2V（真机验证，mp4 含音轨）
 │   ├── video_minimax_h3_i2v.params.json
 │   ├── video_ltx2_3_i2v.json                  # ✅ LTX-2.3 图生视频 I2V（22B，真机验证）
-│   └── video_ltx2_3_i2v.params.json
+│   ├── video_ltx2_3_i2v.params.json
+│   ├── digital_human_talking.json            # ✅ 数字人说话视频（MiniMax-H3 I2V 竖屏，真机验证）
+│   └── digital_human_talking.params.json
 └── tests/
     ├── mock_server.py            # 本地 ComfyUI 兼容 Mock 服务（离线验证用）
     ├── e2e_test.py               # 端到端测试（mock / real 两种模式）
@@ -193,6 +195,24 @@ python -m src.run --workflow video_ltx2_3_i2v \
 
 > **LTX 显存提示**：22B fp8 约 11GB，叠加文本编码器/VAE 后需 ≥16GB 显存；若 ComfyUI 报 OOM，请降低 `width/height/duration` 或改用更高显存机器。
 
+### 示例 7：数字人说话视频（`digital_human_talking`，基于 MiniMax-H3 I2V）
+
+让一张人物图"开口说话"：复用 MiniMax-H3 的 `MiniMaxH3ImageToVideo(first_frame=LoadImage)` 起帧，并**内置音轨**（模型按 prompt 合成语音+氛围音），竖屏 832×1152 适合头像/手机短视频。
+
+```bash
+# 商务自我介绍（竖屏，约 3.4 秒）
+python -m src.run --workflow digital_human_talking \
+    --set image="d:/character.png" \
+    --set "positive_prompt=一位戴眼镜的3D卡通商务男士正对镜头自信讲话，面带微笑，时而点头、用手势强调，口型自然开合，仿佛在说：'大家好，我是您的AI助手，很高兴为您服务。' 背景简洁浅灰，电影级画质，超清" \
+    --set width=832 --set height=1152 --set length=81 --set fps=24
+
+# 换说法/换图：只改 image 与 positive_prompt 即可，分辨率与帧数可保持或微调
+```
+
+产物：`AI-Images-Tools/OutImages/<prompt_id>/15_DigitalHuman_Talking_00001_.mp4`（h264+aac，竖屏 832×1152，~3.75s，含语音音轨）。
+
+> **说明**：这是"语义级口型"——人物会动嘴、有自然语音，但不是逐帧精确对口型（精确 lip-sync 见下"⚠️ 已知坑：云端对口型节点"）。要更长/更高清，调大 `length`/`width`/`height`，但受 16GB 显存上限约束（建议 `length≤141`）。
+
 ## 四、参数说明
 
 ### CLI 参数（`src/run.py`）
@@ -220,6 +240,7 @@ python -m src.run --workflow video_ltx2_3_i2v \
 - **视频 · Wan2.2 图生视频 I2V** `video_wan22_i2v_image`：上述全部 + `image`（本地起始帧路径，自动上传）
 - **视频 · MiniMax-H3 I2V** `video_minimax_h3_i2v`：`positive_prompt`、`seed`、`image`、`width`、`height`、`length`（帧数，step 17，默认 124）、`fps`
 - **视频 · LTX-2.3 I2V** `video_ltx2_3_i2v`：`positive_prompt`、`seed`、`image`、`duration`（秒，帧数=duration×fps+1）、`fps`、`width`、`height`
+- **数字人 · MiniMax-H3 I2V（竖屏说话）** `digital_human_talking`：复用 MiniMax-H3 模板，`positive_prompt`（含台词描述）、`seed`、`image`（本地人物图，自动上传）、`width`、`height`（默认 832×1152 竖屏）、`length`（帧数，step 默认 17）、`fps`
 
 新增/改名参数：编辑对应 `*.params.json` 即可，无需改代码。
 
@@ -260,8 +281,10 @@ python -m src.run --workflow video_ltx2_3_i2v \
 | `video_wan22_i2v_image` | 图生视频 I2V | ✅ 832×480 WEBM | `10_WanI2V_00002_.webm` | 加 `LoadImage` → `WanImageToVideo.start_image` 起帧 |
 | `video_minimax_h3_i2v` | 图生视频 I2V | ✅ 1024×576 MP4（h264+aac，56 帧 / 2.33s） | `15_MiniMax_H3_00001_.mp4` | 含音轨；32B 文本编码器较重，建议 `length≤48` |
 | `video_ltx2_3_i2v` | 图生视频 I2V | ✅ 1024×576 MP4（h264，73 帧 / 2.92s） | `LTX_2.3_i2v_00003_.mp4` | LTX-2.3 22B 音视频联合，默认 3s |
+| `digital_human_talking` | 数字人说话视频 I2V | ✅ 832×1152 MP4（h264+aac，90 帧 / 3.75s） | `15_DigitalHuman_Talking_00001_.mp4` | 复用 MiniMax-H3；竖屏；含语音台词+氛围音；语义级口型 |
 
 - **离线 mock**：`python -m tests.e2e_test` 验证 提交→轮询→下载 全链路，产物落 `AI-Images-Tools/OutImages/e2e_test/<prompt_id>/`。
 - **I2V 起帧**：`image` 参数传本地图片路径，客户端自动 `POST /upload/image` 上传并替换为服务器文件名（对应 `LoadImage` 节点），无需手动预上传。
 - **已知坑（操作）**：若前序任务异常退出，ComfyUI 执行线程可能卡在 `queue_running` 的「幽灵」任务（VRAM=0 却不执行，新任务一直 `running` 无进度）。解决：连续 `POST /interrupt` + `POST /queue {"clear":true}`，等待约 10–15s 队列排空即可恢复。本次 minimax / ltx 真机验证即曾因此卡住，清队后正常出片（工作流本身无问题）。
 - 真实出图/出片耗时含模型首次加载；模型驻留显存后后续任务明显更快。视频类可在 16GB 卡上通过降低 `length`/`width`/`steps` 提速。
+- **⚠️ 已知坑（云端对口型节点）**：本机 ComfyUI 装了 HeyGen（`HeyGenTalkingPhotoNode`）、Kling（`KlingAvatarNode`/`KlingLipSync*`）、Sync.so（`SyncTalkingImageNode`）等"图片/音频→对口型视频"节点，其 `speech`/`voice`/`model` 等参数均为 **`COMFY_DYNAMICCOMBO_V3` 动态组合类型**——该类型专为 ComfyUI **Web UI 前端**设计，通过纯 API（`POST /prompt`）提交时序列化格式不匹配，参数会丢失、节点拿不到文字/音色，**无法在本技能包里直接驱动**（已实测 HeyGen 多次失败）。若以后要做"逐帧精确对口型"，需从 Web UI 手动导出一次真实 API 格式工作流，或用其官方 Python SDK/HTTP API，而非本技能包的 `/prompt` 直驱。当前"数字人说话"用 `digital_human_talking`（MiniMax-H3 I2V）实现语义级口型+语音，已验证可用。
