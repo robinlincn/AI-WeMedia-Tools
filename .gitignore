@@ -29,6 +29,7 @@ config.toml
 # ===== 文章采集 / 二创生成产物（本地运行产物，不入库）=====
 AI-Articles-Tools/Articles/
 AI-Articles-Tools/OutArticles/
+AI-Images-Tools/OutImages/
 
 # ===== WorkBuddy 本地数据 =====
 # 说明：.workbuddy 含 Skills 技能与长期记忆，属于本项目要版本化的内容，故不忽略。

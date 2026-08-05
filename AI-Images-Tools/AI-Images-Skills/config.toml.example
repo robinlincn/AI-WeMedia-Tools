@@ -1,0 +1,42 @@
+# ============================================================
+# AI-Images-Skills 配置文件（config.toml.example）
+# 用法：复制本文件为同目录下的 config.toml，按需修改后生效。
+#       config.toml 已被 .gitignore 排除，不会入库（避免泄露内网地址）。
+# ============================================================
+
+[comfyui]
+# 局域网内 ComfyUI 机器地址（无需末尾斜杠）
+base_url = "http://192.168.31.243:8188"
+# 单次 HTTP 读超时（秒）：下载大视频时适当调大
+timeout = 300
+# 连通性快速探针超时（秒）
+connect_timeout = 6
+# 失败重试次数（网络错误 / 5xx 重试；4xx 不重试）
+max_retries = 3
+# 重试退避基数（秒），第 n 次重试等待 retry_backoff * n
+retry_backoff = 2.0
+# 进度轮询间隔（秒）
+poll_interval = 2.0
+# 单个任务最大等待时长（秒）：超过则判定超时失败
+max_wait = 900
+
+[paths]
+# 工作流 JSON 模板所在目录（相对技能根目录，或绝对路径）
+workflows_dir = "workflows"
+# 产物输出目录（相对技能根目录，或绝对路径）；默认落在 AI-Images-Tools/OutImages
+output_dir = "../OutImages"
+# 运行日志文件（留空则不写文件，仅控制台）
+log_file = "logs/run.log"
+
+[defaults]
+# 默认工作流名（对应 workflows/<name>.json + <name>.params.json）
+workflow = "image_basic"
+# 默认参数（可被 CLI --set key=value 覆盖）
+# positive_prompt = "a serene mountain lake at sunrise, cinematic"
+# negative_prompt = "blurry, low quality, watermark"
+# seed = 0
+# steps = 20
+# cfg = 7.0
+# width = 1024
+# height = 1024
+# frames = 25
