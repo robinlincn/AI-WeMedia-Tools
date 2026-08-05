@@ -1,0 +1,30 @@
+{
+  "positive_prompt": {
+    "node": "320:319",
+    "input": "value"
+  },
+  "seed": {
+    "node": "320:276",
+    "input": "noise_seed"
+  },
+  "image": {
+    "node": "269",
+    "input": "image"
+  },
+  "duration": {
+    "node": "320:301",
+    "input": "value"
+  },
+  "fps": {
+    "node": "320:300",
+    "input": "value"
+  },
+  "width": {
+    "node": "320:312",
+    "input": "value"
+  },
+  "height": {
+    "node": "320:299",
+    "input": "value"
+  }
+}

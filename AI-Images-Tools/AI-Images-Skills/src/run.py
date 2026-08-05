@@ -103,8 +103,12 @@ def load_param_map(name_or_path: str, workflows_dir: Path) -> dict:
     return {}
 
 
-def apply_params(workflow: dict, param_map: dict, overrides: list[str]) -> dict:
-    """把 --set key=value 应用到 workflow。返回更新后的 workflow（深拷贝）。"""
+def apply_params(workflow: dict, param_map: dict, overrides: list[str], client=None) -> dict:
+    """把 --set key=value 应用到 workflow。返回更新后的 workflow（深拷贝）。
+
+    client 传入时：若目标节点为 LoadImage，则把本地路径上传到 ComfyUI 并替换为服务器文件名
+    （用于图生视频 I2V 的起始帧）。
+    """
     wf = json.loads(json.dumps(workflow))  # 深拷贝，避免污染模板
     for kv in overrides:
         if "=" not in kv:
@@ -123,6 +127,10 @@ def apply_params(workflow: dict, param_map: dict, overrides: list[str]) -> dict:
             logger.warning("param map 指向的节点 %s 不在工作流中，跳过 '%s'", node, key)
             continue
         val = _coerce(raw)
+        # LoadImage 类型参数：上传本地图片到 ComfyUI input 目录
+        if client is not None and wf[node].get("class_type") == "LoadImage":
+            logger.info("检测到 LoadImage 参数 %s，上传本地图片: %s", key, val)
+            val = client.upload_image(str(val))
         wf[node]["inputs"][inp] = val
         logger.info("参数化 %s -> 节点%s.%s = %r", key, node, inp, val)
     return wf
@@ -147,7 +155,7 @@ def build_and_run(args, cfg: dict) -> dict:
         max_retries=int(comfy_cfg.get("max_retries", 3)),
         retry_backoff=float(comfy_cfg.get("retry_backoff", 2.0)),
         poll_interval=float(comfy_cfg.get("poll_interval", 2.0)),
-        max_wait=float(comfy_cfg.get("max_wait", 900)),
+        max_wait=float(args.max_wait if args.max_wait else comfy_cfg.get("max_wait", 900)),
     )
 
     # 连通性
@@ -168,7 +176,7 @@ def build_and_run(args, cfg: dict) -> dict:
         if not any(o.split("=", 1)[0].strip() == k for o in overrides):
             overrides.append(f"{k}={v}")
 
-    wf = apply_params(workflow, param_map, overrides)
+    wf = apply_params(workflow, param_map, overrides, client=client)
 
     t0 = __import__("time").time()
     pid, files = client.run_workflow(wf, output_dir)
@@ -207,6 +215,7 @@ def main():
     p.add_argument("--set", action="append", metavar="key=value",
                    help="参数覆盖，可重复，如 --set positive_prompt='a cat' --set seed=123")
     p.add_argument("--ping", action="store_true", help="仅做连通性检测后退出")
+    p.add_argument("--max-wait", type=float, help="覆盖最大等待秒数（默认取配置 max_wait）")
     p.add_argument("--verbose", action="store_true", help="调试日志")
     args = p.parse_args()
 

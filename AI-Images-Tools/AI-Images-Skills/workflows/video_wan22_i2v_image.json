@@ -1,0 +1,88 @@
+{
+  "1": {
+    "class_type": "UNETLoader",
+    "inputs": {
+      "unet_name": "wan2.2_i2v_low_noise_14B_fp8_scaled.safetensors",
+      "weight_dtype": "default"
+    },
+    "_meta": { "title": "Wan2.2 I2V 低噪模型" }
+  },
+  "2": {
+    "class_type": "CLIPLoader",
+    "inputs": {
+      "clip_name": "umt5_xxl_fp8_e4m3fn_scaled.safetensors",
+      "type": "wan",
+      "device": "default"
+    },
+    "_meta": { "title": "加载 CLIP(wan)" }
+  },
+  "3": {
+    "class_type": "VAELoader",
+    "inputs": { "vae_name": "Wan2_1_VAE_bf16.safetensors" },
+    "_meta": { "title": "加载 VAE" }
+  },
+  "4": {
+    "class_type": "CLIPTextEncode",
+    "inputs": {
+      "text": "A serene lake at dawn, gentle mist rising, soft golden light, cinematic slow camera, highly detailed, 4k.",
+      "clip": ["2", 0]
+    },
+    "_meta": { "title": "正提示词" }
+  },
+  "5": {
+    "class_type": "ConditioningZeroOut",
+    "inputs": { "conditioning": ["4", 0] },
+    "_meta": { "title": "负向条件(置零)" }
+  },
+  "6": {
+    "class_type": "LoadImage",
+    "inputs": { "image": "START_IMAGE.png" },
+    "_meta": { "title": "加载起始帧(图生视频)" }
+  },
+  "7": {
+    "class_type": "WanImageToVideo",
+    "inputs": {
+      "positive": ["4", 0],
+      "negative": ["5", 0],
+      "vae": ["3", 0],
+      "width": 832,
+      "height": 480,
+      "length": 49,
+      "batch_size": 1,
+      "start_image": ["6", 0]
+    },
+    "_meta": { "title": "Wan 视频 latent(图生视频)" }
+  },
+  "8": {
+    "class_type": "KSampler",
+    "inputs": {
+      "model": ["1", 0],
+      "positive": ["7", 0],
+      "negative": ["7", 1],
+      "latent_image": ["7", 2],
+      "seed": 12345,
+      "steps": 20,
+      "cfg": 6.0,
+      "sampler_name": "uni_pc",
+      "scheduler": "simple",
+      "denoise": 1.0
+    },
+    "_meta": { "title": "K采样器" }
+  },
+  "9": {
+    "class_type": "VAEDecode",
+    "inputs": { "samples": ["8", 0], "vae": ["3", 0] },
+    "_meta": { "title": "VAE解码" }
+  },
+  "10": {
+    "class_type": "SaveWEBM",
+    "inputs": {
+      "images": ["9", 0],
+      "filename_prefix": "WanI2V",
+      "fps": 16.0,
+      "crf": 32.0,
+      "codec": "vp9"
+    },
+    "_meta": { "title": "保存视频(WEBM)" }
+  }
+}

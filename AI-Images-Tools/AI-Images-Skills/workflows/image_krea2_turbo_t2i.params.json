@@ -1,0 +1,5 @@
+{
+  "positive_prompt": { "node": "4", "input": "text" },
+  "seed": { "node": "8", "input": "seed" },
+  "aspect_ratio": { "node": "6", "input": "aspect_ratio" }
+}

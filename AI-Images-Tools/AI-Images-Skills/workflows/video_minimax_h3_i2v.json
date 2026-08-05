@@ -1,0 +1,116 @@
+{
+  "1": {
+    "class_type": "UNETLoader",
+    "inputs": {
+      "unet_name": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+      "weight_dtype": "default"
+    },
+    "_meta": { "title": "UNet加载器(MiniMax H3)" }
+  },
+  "2": {
+    "class_type": "CLIPLoader",
+    "inputs": {
+      "clip_name": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+      "type": "minimax",
+      "device": "default"
+    },
+    "_meta": { "title": "加载CLIP(minimax)" }
+  },
+  "3": {
+    "class_type": "VAELoader",
+    "inputs": { "vae_name": "minimax_h3_video_vae_fp16.safetensors" },
+    "_meta": { "title": "加载VAE(视频)" }
+  },
+  "4": {
+    "class_type": "VAELoader",
+    "inputs": { "vae_name": "minimax_h3_audio_vae_fp32.safetensors" },
+    "_meta": { "title": "加载VAE(音频)" }
+  },
+  "5": {
+    "class_type": "LoadImage",
+    "inputs": { "image": "START_IMAGE.png" },
+    "_meta": { "title": "加载起始帧(图生视频)" }
+  },
+  "6": {
+    "class_type": "MiniMaxH3ImageToVideo",
+    "inputs": {
+      "prompt": "图片中的女孩骑着自行车悠闲的在街道上穿梭。",
+      "width": 1344,
+      "height": 768,
+      "length": 124,
+      "clip": ["2", 0],
+      "vae": ["3", 0],
+      "first_frame": ["5", 0]
+    },
+    "_meta": { "title": "MiniMax H3 Image to Video" }
+  },
+  "7": {
+    "class_type": "RandomNoise",
+    "inputs": { "noise_seed": 766785490033520 },
+    "_meta": { "title": "随机噪波" }
+  },
+  "8": {
+    "class_type": "BasicScheduler",
+    "inputs": {
+      "scheduler": "simple",
+      "steps": 20,
+      "denoise": 1,
+      "model": ["1", 0]
+    },
+    "_meta": { "title": "基本调度器" }
+  },
+  "9": {
+    "class_type": "BasicGuider",
+    "inputs": {
+      "model": ["1", 0],
+      "conditioning": ["6", 0]
+    },
+    "_meta": { "title": "基本引导器" }
+  },
+  "10": {
+    "class_type": "KSamplerSelect",
+    "inputs": { "sampler_name": "res_multistep" },
+    "_meta": { "title": "K采样器选择" }
+  },
+  "11": {
+    "class_type": "SamplerCustomAdvanced",
+    "inputs": {
+      "noise": ["7", 0],
+      "guider": ["9", 0],
+      "sampler": ["10", 0],
+      "sigmas": ["8", 0],
+      "latent_image": ["6", 1]
+    },
+    "_meta": { "title": "自定义采样器（高级）" }
+  },
+  "12": {
+    "class_type": "VAEDecode",
+    "inputs": { "samples": ["11", 0], "vae": ["3", 0] },
+    "_meta": { "title": "VAE解码(视频)" }
+  },
+  "13": {
+    "class_type": "VAEDecodeAudio",
+    "inputs": { "samples": ["11", 0], "vae": ["4", 0] },
+    "_meta": { "title": "VAE解码(音频)" }
+  },
+  "14": {
+    "class_type": "CreateVideo",
+    "inputs": {
+      "fps": 24,
+      "bit_depth": 8,
+      "images": ["12", 0],
+      "audio": ["13", 0]
+    },
+    "_meta": { "title": "创建视频" }
+  },
+  "15": {
+    "class_type": "SaveVideo",
+    "inputs": {
+      "filename_prefix": "MiniMax_H3",
+      "format": "auto",
+      "codec": "auto",
+      "video": ["14", 0]
+    },
+    "_meta": { "title": "保存视频" }
+  }
+}

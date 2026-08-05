@@ -32,8 +32,9 @@
 ## 技能包布局约定
 - **每个分类的使用/操作技能就近放在该分类文件夹内**：`<分类>/AI-<分类>-Skills/SKILL.md`（如 `AI-Articles-Tools/AI-Articles-Skills/SKILL.md`）。代码本体在对应 `<分类>/Codes/`，技能只沉淀方法论与避坑。
 - **跨分类的「脚手架」元技能保留在 `AI-WeMedia-Skills/ai-category-module-scaffold/`**：用于为任一新分类生成完整模块骨架，不属于任何单一分类。
-- 各分类占位技能（Musics/Sounds/Videos/Webs）均为 🟡 规划中，引用脚手架技能落地；**Images 为 🟢 进行中**（已接入局域网 ComfyUI，Boogu 文生图 + Wan2.2 图生视频均真机验证）；Articles 为 🟢 完整可用，Prompts 为 🟢 进行中（含 Prompts-Back-Calculate）。
-- **AI-Images-Skills 关键事实**：技能包 `AI-Images-Tools/AI-Images-Skills/`，纯标准库（`comfy_client.py`+`run.py`），调用 `192.168.31.243:8188`；内置 `image_boogu_image_0_1_turbo_t2i.json`（Boogu 文生图）与 `video_wan22_i2v.json`（Wan2.2 图生视频 webm），均经真机出图/出片验证。`--set positive_prompt=.../seed=.../length=...` 参数化。
+- 各分类占位技能（Musics/Sounds/Videos/Webs）均为 🟡 规划中，引用脚手架技能落地；**Images 为 🟢 进行中**（已接入局域网 ComfyUI，Boogu/Krea2 文生图 + Wan2.2/MiniMax-H3/LTX-2.3 视频（含 I2V 图生视频）均真机验证）；Articles 为 🟢 完整可用，Prompts 为 🟢 进行中（含 Prompts-Back-Calculate）。
+- **AI-Images-Skills 关键事实**：技能包 `AI-Images-Tools/AI-Images-Skills/`，纯标准库（`comfy_client.py`+`run.py`），调用 `192.168.31.243:8188`。内置 6 个经真机验证的模板：`image_boogu_image_0_1_turbo_t2i`（Boogu 文生图）、`image_krea2_turbo_t2i`（Krea2 文生图）、`video_wan22_i2v`（Wan2.2 文生视频 webm）、`video_wan22_i2v_image`（Wan2.2 **图生视频 I2V**，LoadImage→start_image）、`video_minimax_h3_i2v`（MiniMax-H3 图生视频 mp4 含音轨）、`video_ltx2_3_i2v`（LTX-2.3 22B 图生视频 mp4 含音轨）。`--set` 参数化（positive_prompt/seed/image/width/height/length/duration/fps…）；**I2V 的 `image` 参数传本地路径，run.py 自动 `POST /upload/image` 上传**。`ComfyUIWorkFlow/` 目录存全套原始导出工作流（含源 JSON，可派生更多模板）。
+  - ⚠️ **幽灵执行任务**：前序任务异常退出后，ComfyUI 执行槽可能卡「幽灵」任务（VRAM=0 却不执行，新任务一直 `running` 无进度）。解决：`POST /interrupt` + `POST /queue {"clear":true}` 连发两次并等 ~10–15s 排空；用 `LoadImage→SaveImage` 极简图验证执行器存活。工作流本身无错时清队即可恢复。
 
 ## 关键技术约定（AI-Articles-Tools）
 - 分类代码统一放在对应分类目录的 `Codes/` 子目录（如 `AI-Articles-Tools/Codes`）。

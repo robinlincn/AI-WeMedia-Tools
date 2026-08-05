@@ -1,0 +1,11 @@
+{
+  "positive_prompt": { "node": "4", "input": "text" },
+  "seed": { "node": "8", "input": "seed" },
+  "image": { "node": "6", "input": "image" },
+  "width": { "node": "7", "input": "width" },
+  "height": { "node": "7", "input": "height" },
+  "length": { "node": "7", "input": "length" },
+  "fps": { "node": "10", "input": "fps" },
+  "steps": { "node": "8", "input": "steps" },
+  "cfg": { "node": "8", "input": "cfg" }
+}

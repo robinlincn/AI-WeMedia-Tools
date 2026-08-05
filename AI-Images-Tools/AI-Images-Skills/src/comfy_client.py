@@ -150,6 +150,62 @@ class ComfyClient:
         logger.info("已提交任务 prompt_id=%s", pid)
         return pid
 
+    def upload_image(self, local_path: str | Path, subfolder: str = "", image_type: str = "input") -> str:
+        """上传本地图片到 ComfyUI 的 input 目录（/upload/image）。
+
+        供 LoadImage / 图生视频（I2V）工作流使用。返回服务器侧文件名（LoadImage 的 image 字段值）。
+        """
+        p = Path(local_path)
+        if not p.exists():
+            raise ComfyError(f"上传图片不存在: {local_path}")
+        data = p.read_bytes()
+        boundary = "----ComfyBoundary" + uuid.uuid4().hex
+        CRLF = b"\r\n"
+        parts: list[bytes] = []
+
+        def _field(name: str, value: str) -> None:
+            parts.append(f"--{boundary}".encode() + CRLF)
+            parts.append(f'Content-Disposition: form-data; name="{name}"'.encode() + CRLF + CRLF)
+            parts.append(value.encode("utf-8") + CRLF)
+
+        _field("subfolder", subfolder)
+        _field("type", image_type)
+        # 文件字段
+        parts.append(f"--{boundary}".encode() + CRLF)
+        parts.append(f'Content-Disposition: form-data; name="image"; filename="{p.name}"'.encode() + CRLF)
+        parts.append(b"Content-Type: application/octet-stream" + CRLF + CRLF)
+        parts.append(data + CRLF)
+        parts.append(f"--{boundary}--".encode() + CRLF)
+        body = b"".join(parts)
+
+        headers = {
+            "User-Agent": "ai-images-skills",
+            "Content-Type": f"multipart/form-data; boundary={boundary}",
+        }
+        url = f"{self.base}/upload/image"
+        last_err: Exception | None = None
+        for attempt in range(1, self.max_retries + 1):
+            try:
+                req = urllib.request.Request(url, data=body, headers=headers, method="POST")
+                with urllib.request.urlopen(req, timeout=self.timeout) as r:
+                    resp = json.loads(r.read().decode("utf-8", "replace"))
+                name = resp.get("name")
+                if not name:
+                    raise ComfyError(f"/upload/image 未返回 name，响应: {resp}")
+                logger.info("已上传图片 %s -> 服务器名 %s", local_path, name)
+                return name
+            except urllib.error.HTTPError as e:
+                if 400 <= e.code < 500:
+                    raise ComfyError(f"HTTP {e.code} 上传失败 @ /upload/image: {e.reason}")
+                last_err = e
+                logger.warning("[重试 %d/%d] 上传图片失败: %s", attempt, self.max_retries, e)
+            except Exception as e:  # noqa: BLE001
+                last_err = e
+                logger.warning("[重试 %d/%d] 上传图片异常: %s", attempt, self.max_retries, e)
+            if attempt < self.max_retries:
+                time.sleep(self.retry_backoff * attempt)
+        raise ComfyError(f"图片上传失败(已重试{self.max_retries}次): {last_err}")
+
     def _fetch_history(self, prompt_id: str) -> dict | None:
         """优先按 prompt_id 直查 /history/<id>，失败回退全量 /history。返回该任务的 history 条目或 None。"""
         try:
@@ -188,13 +244,28 @@ class ComfyClient:
             time.sleep(self.poll_interval)
         raise ComfyError(f"任务超时（>{self.max_wait}秒）未完成 prompt_id={prompt_id}")
 
-    def download_outputs(self, prompt_id: str, outputs: dict, output_dir: str | Path) -> list[Path]:
-        """下载 history 条目中的全部产物到 output_dir/<prompt_id>/。返回落盘文件路径列表。"""
+    def download_outputs(self, prompt_id: str, outputs: dict, output_dir: str | Path,
+                         workflow: dict | None = None) -> list[Path]:
+        """下载 history 条目中的全部产物到 output_dir/<prompt_id>/。返回落盘文件路径列表。
+
+        workflow 传入时，仅下载 class_type 以 "Save" 开头的保存节点（SaveImage / SaveWEBM /
+        SaveVideo 等），避免 VAEDecode 等中间节点的预览帧被当成产物下载，造成海量冗余文件。
+        不传 workflow 时回退为「下载所有含 filename 的条目」（兼容旧行为）。
+        """
         out_root = Path(output_dir) / prompt_id
         out_root.mkdir(parents=True, exist_ok=True)
+        # 仅保留保存节点
+        save_ids = None
+        if workflow:
+            save_ids = {
+                nid for nid, n in workflow.items()
+                if isinstance(n, dict) and str(n.get("class_type", "")).startswith("Save")
+            }
         saved: list[Path] = []
         for node_id, node_out in outputs.items():
             if not isinstance(node_out, dict):
+                continue
+            if save_ids is not None and node_id not in save_ids:
                 continue
             # 收集需要下载的条目：images / gifs(视频) / 其他含 filename 的列表
             items = []
@@ -236,5 +307,5 @@ class ComfyClient:
         """端到端执行：提交、等待、下载。返回 (prompt_id, 落盘文件列表)。"""
         pid = self.queue_prompt(workflow)
         entry = self.wait_for_completion(pid)
-        files = self.download_outputs(pid, entry.get("outputs", {}), output_dir)
+        files = self.download_outputs(pid, entry.get("outputs", {}), output_dir, workflow)
         return pid, files
